@@ -1,0 +1,39 @@
+<form (ngSubmit)="login()" #form="ngForm">
+  <div class="form-group mb-3">
+    <div class="input-group">
+      <span class="input-group-text">
+        <i class="bi bi-envelope-fill"></i>
+      </span>
+      <input
+        type="email"
+        [(ngModel)]="email"
+        name="email"
+        class="form-control"
+        required
+        placeholder="Digite seu e-mail"
+      />
+    </div>
+  </div>
+  <div class="form-group mb-3">
+    <div class="input-group">
+      <span class="input-group-text">
+        <i class="bi bi-lock-fill"></i>
+      </span>
+      <input
+        type="password"
+        [(ngModel)]="senha"
+        name="senha"
+        class="form-control"
+        required
+        placeholder="Digite sua senha"
+      />
+    </div>
+  </div>
+    <div *ngIf="erro" class="alert alert-danger">
+    {{ erro }}
+  </div>
+  <a href="#" class="link-primary-cuidar d-flex justify-content-end">Esqueceu a senha?</a>
+  <div class="form-group mt-4">
+    <button type="submit" class="btn btn-primary w-100">Acessar</button>
+  </div>
+</form>

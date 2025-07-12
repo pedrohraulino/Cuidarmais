@@ -1,0 +1,72 @@
+<div class="container-img">
+  <img src="../../assets/img/cuidarmiasbranco.svg" alt="" />
+</div>
+
+<div class="container-infos">
+  <div class="container-infos-menu">
+    <h4>Gestão de Agendamento</h4>
+    <ul>
+      <li
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <i
+          class="{{
+            router.url.startsWith('/dashboard')
+              ? 'bi bi-house-door-fill'
+              : 'bi bi-house-door'
+          }}"
+        ></i>
+        Dashboard
+      </li>
+
+      <li
+        routerLink="/agenda"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <i
+          class="{{
+            router.url.startsWith('/agenda')
+              ? 'bi bi-calendar-event-fill'
+              : 'bi bi-calendar-event'
+          }}"
+        ></i>
+        Agenda
+      </li>
+
+      <li
+        routerLink="/paciente/cadastrar"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: false }"
+      >
+        <i
+          class="{{
+            router.url.startsWith('/paciente')
+              ? 'bi bi-person-fill'
+              : 'bi bi-person'
+          }}"
+        ></i>
+        Pacientes
+      </li>
+
+      <li
+        routerLink="/configuracoes"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        <i
+          class="{{
+            router.url.startsWith('/configuracoes')
+              ? 'bi bi-gear-fill'
+              : 'bi bi-gear'
+          }}"
+        ></i>
+        Configurações
+      </li>
+    </ul>
+  </div>
+
+  <button (click)="logout()"><i class="bi bi-box-arrow-right"></i> Sair</button>
+</div>
