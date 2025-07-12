@@ -1,15 +1,16 @@
 package cuidar.mais.api.controller;
 
 import cuidar.mais.api.models.Usuario;
+import cuidar.mais.api.service.ImagemBase64Service;
+import cuidar.mais.api.service.UsuarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +19,11 @@ import java.util.Map;
 @RequestMapping("/usuarios")
 @CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000"})
 public class UsuarioController {
+    @Autowired
+    private UsuarioService usuarioService;
+
+    @Autowired
+    private ImagemBase64Service imagemService;
     private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
 
     @GetMapping("/me")
@@ -39,5 +45,7 @@ public class UsuarioController {
 
         return ResponseEntity.ok(userData);
     }
+
+
 
 }

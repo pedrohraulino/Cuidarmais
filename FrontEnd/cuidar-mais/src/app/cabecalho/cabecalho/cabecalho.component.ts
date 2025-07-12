@@ -14,6 +14,7 @@ import { filter, map } from 'rxjs';
 export class CabecalhoComponent implements OnInit {
   pageTitle: string = '';
   psicologo: PsicologoDTO | null = null;
+  imagemPreview: string | null = null;
 
   constructor(
     private router: Router,
@@ -30,7 +31,10 @@ export class CabecalhoComponent implements OnInit {
         this.pageTitle = title;
       });
     this.psicologoService.getDadosPsicologo().subscribe({
-      next: (res) => (this.psicologo = res),
+      next: (res) => {
+        this.psicologo = res;
+        this.carregarImagem(); // Carrega a imagem do usuário após obter os dados
+      },
       error: (err) => console.error('Erro ao buscar psicólogo:', err),
     });
     this.pageTitle = this.extractTitleFromRoute();
@@ -49,4 +53,50 @@ export class CabecalhoComponent implements OnInit {
 
     return 'Cuidar+';
   }
+
+   onFileSelected(event: any) {
+    const arquivo = event.target.files[0];
+    if (arquivo) {
+      this.converterParaBase64(arquivo);
+    }
+  }
+
+  converterParaBase64(arquivo: File) {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.imagemPreview = e.target.result;
+
+      if (this.psicologo && this.psicologo.id && this.imagemPreview) {
+        this.psicologoService.uploadImagemBase64(this.psicologo.id, this.imagemPreview)
+          .subscribe(
+            response => {
+              console.log('Upload realizado com sucesso:', response);
+            },
+            error => {
+              console.error('Erro no upload:', error);
+            }
+          );
+      } else {
+        console.error('Erro: ID do psicólogo não disponível ou imagem não carregada');
+      }
+    };
+    reader.readAsDataURL(arquivo);
+  }
+
+  carregarImagem() {
+    if (this.psicologo && this.psicologo.id) {
+      this.psicologoService.obterImagem(this.psicologo.id)
+        .subscribe(
+          response => {
+            this.imagemPreview = response.dataUrl;
+          },
+          error => {
+            console.error('Erro ao carregar imagem:', error);
+          }
+        );
+    } else {
+      console.error('Erro: ID do psicólogo não disponível');
+    }
+  }
+
 }

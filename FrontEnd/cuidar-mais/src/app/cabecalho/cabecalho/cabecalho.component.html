@@ -6,6 +6,10 @@
       <h5>{{ psicologo?.nome }}</h5>
       <p>{{ psicologo?.email }}</p>
     </div>
-    <img src="assets/img/user-placeholder.png" alt="Foto do usuário">
+    <div class="user-image-container">
+      <img [src]="imagemPreview || 'assets/img/user-placeholder.png'" alt="Foto do usuário">
+      <input type="file" #fileInput style="display: none" accept="image/*" (change)="onFileSelected($event)">
+      <button class="upload-btn" (click)="fileInput.click()">Alterar foto</button>
+    </div>
   </div>
 </section>

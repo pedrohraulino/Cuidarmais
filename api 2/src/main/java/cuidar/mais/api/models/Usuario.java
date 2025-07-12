@@ -30,6 +30,17 @@ public class Usuario implements UserDetails {
 
     private Boolean ativo;
 
+    @Column(name = "crp", length = 20)
+    private String crp;
+
+    @Lob
+    @Column(name = "imagem_base64", columnDefinition = "TEXT")
+    private String imagemBase64;
+
+    @Column(name = "imagem_tipo")
+    private String imagemTipo;
+
+
     @Column(name = "data_criacao")
     private LocalDateTime dataCriacao;
 
@@ -52,6 +63,12 @@ public class Usuario implements UserDetails {
                 .collect(Collectors.toList());
     }
 
+    public String getImagemDataUrl() {
+        if (imagemBase64 != null && imagemTipo != null) {
+            return "data:" + imagemTipo + ";base64," + imagemBase64;
+        }
+        return null;
+    }
 
     @Override
     public String getPassword() {
