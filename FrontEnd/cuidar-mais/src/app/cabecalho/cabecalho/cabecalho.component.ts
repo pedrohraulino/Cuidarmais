@@ -32,8 +32,18 @@ export class CabecalhoComponent implements OnInit {
       });
     this.psicologoService.getDadosPsicologo().subscribe({
       next: (res) => {
+        console.log('Dados do psicólogo recebidos:', res);
+        console.log('CRP recebido:', res.crp);
+        console.log('Imagem recebida:', res.imagemDataUrl);
+
         this.psicologo = res;
-        this.carregarImagem(); // Carrega a imagem do usuário após obter os dados
+        // Usar a imagem que já vem nos dados do psicólogo
+        if (res.imagemDataUrl) {
+          console.log('Definindo imagemPreview com a imagem recebida');
+          this.imagemPreview = res.imagemDataUrl;
+        } else {
+          console.log('Imagem não recebida ou nula');
+        }
       },
       error: (err) => console.error('Erro ao buscar psicólogo:', err),
     });
@@ -71,6 +81,10 @@ export class CabecalhoComponent implements OnInit {
           .subscribe(
             response => {
               console.log('Upload realizado com sucesso:', response);
+              // Atualizar o imagemDataUrl no objeto psicologo
+              if (this.psicologo) {
+                this.psicologo.imagemDataUrl = this.imagemPreview!;
+              }
             },
             error => {
               console.error('Erro no upload:', error);
@@ -83,20 +97,5 @@ export class CabecalhoComponent implements OnInit {
     reader.readAsDataURL(arquivo);
   }
 
-  carregarImagem() {
-    if (this.psicologo && this.psicologo.id) {
-      this.psicologoService.obterImagem(this.psicologo.id)
-        .subscribe(
-          response => {
-            this.imagemPreview = response.dataUrl;
-          },
-          error => {
-            console.error('Erro ao carregar imagem:', error);
-          }
-        );
-    } else {
-      console.error('Erro: ID do psicólogo não disponível');
-    }
-  }
 
 }

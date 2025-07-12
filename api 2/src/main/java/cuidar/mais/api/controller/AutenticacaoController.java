@@ -19,7 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -50,7 +49,6 @@ public class AutenticacaoController {
     private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
-    @Transactional
     public ResponseEntity<?> autenticar(@RequestBody @Valid LoginRequest login) {
         logger.info("Tentativa de login recebida: {}", login);
         logger.info("Tentativa de login para o email: {}", login.getEmail());
@@ -168,7 +166,6 @@ public class AutenticacaoController {
     }
 
     @GetMapping("/db-status")
-    @Transactional
     public ResponseEntity<?> dbStatus() {
         try {
             logger.info("Verificando conexão com o banco de dados");
@@ -219,7 +216,6 @@ public class AutenticacaoController {
     }
 
     @GetMapping("/test-auth")
-    @Transactional
     public ResponseEntity<?> testAuth(@RequestParam String email, @RequestParam String senha) {
         try {
             logger.info("Testando autenticação direta para: {}", email);
@@ -247,7 +243,6 @@ public class AutenticacaoController {
     }
 
     @GetMapping("/check-user")
-    @Transactional
     public ResponseEntity<?> checkUser(@RequestParam String email) {
         try {
             logger.info("Verificando se usuário existe: {}", email);
@@ -271,7 +266,6 @@ public class AutenticacaoController {
         }
     }
     @PostMapping("/create-test-user")
-    @Transactional
     public ResponseEntity<?> createTestUser(@RequestParam String email, @RequestParam String senha, @RequestParam String nome) {
         try {
             logger.info("Tentando criar usuário de teste: {}", email);

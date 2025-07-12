@@ -1,0 +1,89 @@
+h5{
+  font-size: 16px;
+  font-weight: bold;
+  color: #A5A5A5;
+  margin: 0;
+}
+
+label{
+  font-size: 16px !important;
+  color: #A5A5A5;
+}
+
+
+.cabecalho-dia {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 16px;
+}
+.main-container{
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100vh;
+}
+.cabecalho-dia input[type="checkbox"] {
+  appearance: none;
+  width: 40px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cabecalho-dia input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  top: 1px;
+  left: 1px;
+  transition: transform 0.3s;
+}
+
+.cabecalho-dia input[type="checkbox"]:checked {
+  background-color: #4caf50;
+}
+
+.cabecalho-dia input[type="checkbox"]:checked::before {
+  transform: translateX(20px);
+}
+
+.configuracoes-horarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.acoes {
+  text-align: right;
+}
+
+.dias-semana-container {
+  padding: 0 24px;
+  flex: 1; // ocupa o espaço que sobrar
+  overflow-y: auto;
+}
+
+.required-asterisk {
+  color: red;
+  margin-left: 2px;
+}
+
+// Estilo para o switch quando ativo (checked)
+.form-check-input:checked {
+  background-color: #4caf50 !important;
+  border-color: #4caf50 !important;
+}
+
+// Estilo para o switch quando em foco
+.form-check-input:focus {
+  border-color: #4caf50;
+  box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+}

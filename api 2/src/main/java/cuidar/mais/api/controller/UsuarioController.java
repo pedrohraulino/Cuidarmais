@@ -41,6 +41,8 @@ public class UsuarioController {
         userData.put("id", usuario.getId());
         userData.put("nome", usuario.getNome());
         userData.put("email", usuario.getEmail());
+        userData.put("crp", usuario.getCrp());
+        userData.put("imagemDataUrl", usuario.getImagemDataUrl());
         userData.put("perfis", usuario.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
 
         return ResponseEntity.ok(userData);

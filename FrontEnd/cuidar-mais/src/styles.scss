@@ -12,7 +12,7 @@ body {
   height: 100%;
   font-family: "Inter", Arial, Helvetica, sans-serif;
   background: #fff;
-  color: #39362F;
+  color: #39362f;
 }
 body {
   line-height: 1.5;
@@ -90,7 +90,7 @@ input.form-control * {
 app-root {
   display: flex;
   justify-content: space-between;
-  background-color: #F0EEF9;
+  background-color: #f0eef9;
   height: 100vh !important;
 }
 
@@ -101,5 +101,10 @@ app-menu-lateral {
   height: 100vh;
   background-color: #fff;
   box-shadow: 4px 0 24px 0 rgba(0, 0, 0, 0.1);
+}
+
+app-cadastrar-paciente,
+app-configurar {
+  width: 100%;
 }
 

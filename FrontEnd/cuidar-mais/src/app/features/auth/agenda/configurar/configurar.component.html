@@ -1,1 +1,160 @@
-<app-cabecalho></app-cabecalho>
+<div class="main-container">
+  <app-cabecalho></app-cabecalho>
+
+  <!-- Lista de dias da semana -->
+  <div
+    *ngIf="!carregandoConfiguracoes"
+    class="dias-semana-container overflow-auto"
+  >
+    <!-- Mensagens de erro e sucesso -->
+    <div
+      *ngIf="mensagemErro"
+      class="alert alert-danger alert-dismissible fade show mb-3"
+      role="alert"
+    >
+      {{ mensagemErro }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="mensagemErro = ''"
+      ></button>
+    </div>
+
+    <div
+      *ngIf="mensagemSucesso"
+      class="alert alert-success alert-dismissible fade show mb-3"
+      role="alert"
+    >
+      {{ mensagemSucesso }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="mensagemSucesso = ''"
+      ></button>
+    </div>
+
+    <!-- Loader para configurações -->
+    <div *ngIf="carregandoConfiguracoes" class="text-center my-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-2">Carregando configurações...</p>
+    </div>
+    <div *ngFor="let dia of diasSemana" class="card mb-3 p-3">
+      <!-- Cabeçalho com switch e nome do dia -->
+      <div class="d-flex justify-content-start align-items-center">
+        <h5 class="mb-0">{{ dia.nome }}</h5>
+        <div class="form-check form-switch" style="margin-left: 1rem;">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            [id]="'switch' + dia.id"
+            [(ngModel)]="getConfiguracao(dia.id).ativo"
+          />
+        </div>
+      </div>
+
+      <!-- Campos de horários -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-2">
+          <label [for]="'inicio' + dia.id" class="form-label"
+            >Horário Início<span class="required-asterisk">*</span></label
+          >
+          <input
+            type="time"
+            class="form-control"
+            [id]="'inicio' + dia.id"
+            [name]="'inicio' + dia.id"
+            [(ngModel)]="getConfiguracao(dia.id).horarioInicio"
+            required
+          />
+        </div>
+        <div class="col-md-3">
+          <label [for]="'intervalo' + dia.id" class="form-label"
+            >Intervalo entre atendimentos (min)<span class="required-asterisk">*</span></label
+          >
+          <input
+            type="number"
+            class="form-control"
+            [id]="'intervalo' + dia.id"
+            [name]="'intervalo' + dia.id"
+            min="0"
+            step="5"
+            [(ngModel)]="getConfiguracao(dia.id).intervaloMinutos"
+            required
+          />
+        </div>
+        <div class="col-md-2">
+          <label [for]="'fim' + dia.id" class="form-label">Horário Fim<span class="required-asterisk">*</span></label>
+          <input
+            type="time"
+            class="form-control"
+            [id]="'fim' + dia.id"
+            [name]="'fim' + dia.id"
+            [(ngModel)]="getConfiguracao(dia.id).horarioFim"
+            required
+          />
+        </div>
+        <div class="col-md-2">
+          <label [for]="'inicioPausa' + dia.id" class="form-label"
+            >Início da Pausa</label
+          >
+          <input
+            type="time"
+            class="form-control"
+            [id]="'inicioPausa' + dia.id"
+            [name]="'inicioPausa' + dia.id"
+            [(ngModel)]="getConfiguracao(dia.id).inicioPausa"
+          />
+        </div>
+        <div class="col-md-2">
+          <label [for]="'fimPausa' + dia.id" class="form-label"
+            >Volta da Pausa</label
+          >
+          <input
+            type="time"
+            class="form-control"
+            [id]="'fimPausa' + dia.id"
+            [name]="'fimPausa' + dia.id"
+            [(ngModel)]="getConfiguracao(dia.id).fimPausa"
+          />
+        </div>
+      </div>
+
+      <!-- Informação de última atualização -->
+      <div class="d-flex justify-content-between align-items-center">
+        <div
+          *ngIf="getConfiguracao(dia.id).dataAtualizacao"
+          class="text-muted small"
+        >
+          Última atualização:
+          {{ formatarData(getConfiguracao(dia.id).dataAtualizacao) }}
+        </div>
+        <div
+          *ngIf="!getConfiguracao(dia.id).dataAtualizacao"
+          class="text-muted small"
+        >
+          Ainda possui uma configuração
+        </div>
+      </div>
+
+      <!-- Botão salvar -->
+      <div class="text-end">
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="salvarConfiguracao(getConfiguracao(dia.id))"
+          [disabled]="salvando"
+        >
+          <span
+            *ngIf="salvando"
+            class="spinner-border spinner-border-sm me-1"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          {{ salvando ? "Salvando..." : "Salvar Configuração" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

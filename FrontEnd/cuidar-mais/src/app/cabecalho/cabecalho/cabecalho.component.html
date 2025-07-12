@@ -1,15 +1,31 @@
 <section class="top-header">
-  <h2>{{pageTitle}}</h2>
+  <h2>{{ pageTitle }}</h2>
 
   <div class="user-info">
     <div>
-      <h5>{{ psicologo?.nome }}</h5>
-      <p>{{ psicologo?.email }}</p>
+      <h5 class="user-info-nome">{{ psicologo?.nome }}</h5>
+      <p class="user-info-crp">{{ psicologo?.crp }}</p>
     </div>
     <div class="user-image-container">
-      <img [src]="imagemPreview || 'assets/img/user-placeholder.png'" alt="Foto do usuário">
-      <input type="file" #fileInput style="display: none" accept="image/*" (change)="onFileSelected($event)">
-      <button class="upload-btn" (click)="fileInput.click()">Alterar foto</button>
+      <img
+        [src]="imagemPreview || '../../../assets/img/user-placeholder.png'"
+        alt="Foto do usuário"
+      />
+
+      <div class="upload-icon">
+        <i
+          class="bi bi-cloud-upload upload-icon"
+          (click)="fileInput.click()"
+        ></i>
+      </div>
+
+      <input
+        type="file"
+        #fileInput
+        style="display: none"
+        accept="image/*"
+        (change)="onFileSelected($event)"
+      />
     </div>
   </div>
 </section>

@@ -33,7 +33,6 @@ public class Usuario implements UserDetails {
     @Column(name = "crp", length = 20)
     private String crp;
 
-    @Lob
     @Column(name = "imagem_base64", columnDefinition = "TEXT")
     private String imagemBase64;
 

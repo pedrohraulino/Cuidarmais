@@ -8,7 +8,8 @@ export interface PsicologoDTO {
   nome: string;
   email: string;
   perfis: string[];
-  crp:string;
+  crp: string;
+  imagemDataUrl: string;
 }
 
 @Injectable({
