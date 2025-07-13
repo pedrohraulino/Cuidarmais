@@ -35,34 +35,45 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        logger.info("Processing request to: {}", request.getRequestURI());
         String token = recuperarToken(request);
         if (token != null) {
             try {
                 // Primeiro verifica se o token é válido
-                if (tokenService.isTokenValido(token)) {
-                    Long idUsuario = tokenService.getIdUsuario(token);
-                    Usuario usuario = usuarioRepository.findById(idUsuario).orElse(null);
+                boolean isValid = tokenService.isTokenValido(token);
+                logger.info("Token validation result for {}: {}", request.getRequestURI(), isValid);
 
+                if (isValid) {
+                    Long idUsuario = tokenService.getIdUsuario(token);
+                    logger.info("User ID extracted from token: {}", idUsuario);
+
+                    Usuario usuario = usuarioRepository.findById(idUsuario).orElse(null);
                     if (usuario != null) {
+                        logger.info("User found in database: {} (ID: {})", usuario.getEmail(), usuario.getId());
+
                         UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(auth);
-                        logger.info("Usuário autenticado via token: {}", usuario.getEmail());
+                        logger.info("User authenticated via token: {} with authorities: {}", 
+                                   usuario.getEmail(), usuario.getAuthorities());
                     } else {
-                        logger.warn("Usuário não encontrado para o ID: {}", idUsuario);
+                        logger.warn("User not found for ID: {}", idUsuario);
                     }
                 } else {
-                    logger.warn("Token inválido ou expirado");
+                    logger.warn("Token invalid or expired for request: {}", request.getRequestURI());
                 }
             } catch (ExpiredJwtException e) {
-                logger.warn("Token expirado: {}", e.getMessage());
+                logger.warn("Token expired for request {}: {}", request.getRequestURI(), e.getMessage());
             } catch (MalformedJwtException | SignatureException e) {
-                logger.warn("Token inválido: {}", e.getMessage());
+                logger.warn("Invalid token for request {}: {}", request.getRequestURI(), e.getMessage());
             } catch (JwtException e) {
-                logger.error("Erro ao processar token: {}", e.getMessage());
+                logger.error("Error processing token for request {}: {}", request.getRequestURI(), e.getMessage());
             } catch (Exception e) {
-                logger.error("Erro inesperado ao processar token: {}", e.getMessage(), e);
+                logger.error("Unexpected error processing token for request {}: {}", 
+                            request.getRequestURI(), e.getMessage(), e);
             }
+        } else {
+            logger.info("No token provided for request: {}", request.getRequestURI());
         }
 
         filterChain.doFilter(request, response);
@@ -70,9 +81,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String recuperarToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
+        logger.info("Authorization header: {}", bearer);
         if (bearer != null && bearer.startsWith("Bearer ")) {
-            return bearer.substring(7);
+            String token = bearer.substring(7);
+            logger.info("Token extracted: {}", token.substring(0, Math.min(10, token.length())) + "...");
+            return token;
         }
+        logger.warn("No token found in request to: {}", request.getRequestURI());
         return null;
     }
 }

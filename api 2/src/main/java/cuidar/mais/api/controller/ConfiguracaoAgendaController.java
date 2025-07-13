@@ -131,6 +131,33 @@ public class ConfiguracaoAgendaController {
     }
 
     /**
+     * Verifica se uma configuração de agenda pode ser excluída
+     */
+    @GetMapping("/{id}/pode-excluir")
+    public ResponseEntity<?> podeExcluirConfiguracao(@PathVariable Long id, @AuthenticationPrincipal Usuario usuario) {
+        if (usuario == null) {
+            logger.warn("Tentativa de acesso sem autenticação");
+            return ResponseEntity.status(401).body(Map.of("erro", "Usuário não autenticado"));
+        }
+
+        try {
+            // Verifica se a configuração pertence ao psicólogo logado
+            ConfiguracaoAgendaDTO configuracao = configuracaoAgendaService.buscarPorId(id);
+            if (!configuracao.getPsicologoId().equals(usuario.getId())) {
+                logger.warn("Tentativa de verificar configuração de outro psicólogo");
+                return ResponseEntity.status(403).body(Map.of("erro", "Acesso negado"));
+            }
+
+            logger.info("Verificando se configuração de agenda {} pode ser excluída", id);
+            boolean podeExcluir = configuracaoAgendaService.podeExcluir(id);
+            return ResponseEntity.ok(Map.of("podeExcluir", podeExcluir));
+        } catch (RuntimeException e) {
+            logger.error("Erro ao verificar se configuração pode ser excluída: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    /**
      * Exclui uma configuração de agenda
      */
     @DeleteMapping("/{id}")
@@ -203,6 +230,21 @@ public class ConfiguracaoAgendaController {
             return ResponseEntity.ok(horariosFormatados);
         } catch (RuntimeException e) {
             logger.error("Erro ao gerar horários disponíveis: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    /**
+     * Busca todas as configurações de agenda de um psicólogo específico
+     */
+    @GetMapping("/psicologo/{psicologoId}")
+    public ResponseEntity<?> buscarPorPsicologo(@PathVariable Long psicologoId) {
+        try {
+            logger.info("Buscando configurações de agenda para o psicólogo {}", psicologoId);
+            List<ConfiguracaoAgendaDTO> configuracoes = configuracaoAgendaService.buscarPorPsicologo(psicologoId);
+            return ResponseEntity.ok(configuracoes);
+        } catch (RuntimeException e) {
+            logger.error("Erro ao buscar configurações de agenda: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }
     }

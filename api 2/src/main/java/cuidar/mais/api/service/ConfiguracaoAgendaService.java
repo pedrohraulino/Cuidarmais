@@ -32,6 +32,9 @@ public class ConfiguracaoAgendaService {
     @Autowired
     private AgendamentoService agendamentoService;
 
+    @Autowired
+    private HorarioDisponivelService horarioDisponivelService;
+
     /**
      * Busca todas as configurações de agenda de um psicólogo
      */
@@ -179,7 +182,38 @@ public class ConfiguracaoAgendaService {
         // Salva a configuração
         configuracao = configuracaoAgendaRepository.save(configuracao);
 
+        // Gera e salva os horários disponíveis
+        horarioDisponivelService.gerarESalvarHorarios(configuracao);
+
         return converterParaDTO(configuracao);
+    }
+
+    /**
+     * Verifica se uma configuração de agenda pode ser excluída
+     * @param id ID da configuração
+     * @return true se a configuração pode ser excluída, false caso contrário
+     */
+    public boolean podeExcluir(Long id) {
+        ConfiguracaoAgenda configuracao = configuracaoAgendaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Configuração de agenda não encontrada"));
+
+        // Obtém a data atual para o dia da semana da configuração
+        LocalDate dataAtual = LocalDate.now();
+        while (dataAtual.getDayOfWeek() != configuracao.getDiaSemana()) {
+            dataAtual = dataAtual.plusDays(1);
+        }
+
+        // Verifica se todos os horários estão disponíveis
+        return verificarDisponibilidadeHorarios(
+                configuracao.getPsicologo().getId(),
+                configuracao.getDiaSemana(),
+                dataAtual,
+                configuracao.getHorarioInicio(),
+                configuracao.getHorarioFim(),
+                configuracao.getInicioPausa(),
+                configuracao.getFimPausa(),
+                configuracao.getIntervaloMinutos()
+        );
     }
 
     /**
@@ -187,6 +221,19 @@ public class ConfiguracaoAgendaService {
      */
     @Transactional
     public void excluir(Long id) {
+        // Verifica se a configuração pode ser excluída
+        if (!podeExcluir(id)) {
+            throw new RuntimeException("Não é possível excluir a configuração porque existem horários indisponíveis");
+        }
+
+        // Busca a configuração
+        ConfiguracaoAgenda configuracao = configuracaoAgendaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Configuração de agenda não encontrada"));
+
+        // Primeiro, exclui os horários disponíveis associados à configuração
+        horarioDisponivelService.excluirPorConfiguracao(configuracao);
+
+        // Depois, exclui a configuração
         configuracaoAgendaRepository.deleteById(id);
     }
 

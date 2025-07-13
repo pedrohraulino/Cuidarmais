@@ -18,15 +18,20 @@ export class TokenInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<any>> {
     const token = this.authService.getToken();
 
+    // Log the request URL and whether a token is present
+    console.log(`[TokenInterceptor] Request to ${req.url}, Token present: ${!!token}`);
+
     if (token) {
       const authReq = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
         }
       });
+      console.log(`[TokenInterceptor] Added token to request: ${req.url}`);
       return next.handle(authReq);
     }
 
+    console.log(`[TokenInterceptor] No token available for request: ${req.url}`);
     return next.handle(req);
   }
 }

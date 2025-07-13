@@ -128,6 +128,17 @@ public class AutenticacaoController {
             Usuario usuario = (Usuario) principal;
             logger.info("Usuário autenticado com sucesso: {}", usuario.getEmail());
 
+            // Verificar se o usuário tem o perfil de psicólogo
+            boolean isPsicologo = usuario.getPerfis().stream()
+                    .anyMatch(perfil -> "PSICOLOGO".equals(perfil.getNome()));
+
+            if (!isPsicologo) {
+                logger.warn("Tentativa de login de usuário sem perfil de psicólogo: {}", usuario.getEmail());
+                Map<String, String> erro = new HashMap<>();
+                erro.put("erro", "Acesso permitido apenas para psicólogos");
+                return ResponseEntity.status(403).body(erro);
+            }
+
             try {
                 logger.debug("Gerando token para o usuário: {}", usuario.getEmail());
                 String token = tokenService.gerarToken(usuario);

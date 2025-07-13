@@ -4,14 +4,21 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { CadastrarPacienteComponent } from './features/auth/paciente/cadastrar-paciente/cadastrar-paciente.component';
 import { authGuard } from '../auth.guard';
 import { ConfigurarComponent } from './features/auth/agenda/configurar/configurar.component';
+import { ListaPacientesComponent } from './features/auth/paciente/lista-pacientes/lista-pacientes.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
   {
-    path: 'paciente/cadastrar',
+    path: 'pacientes/cadastrar',
     component: CadastrarPacienteComponent,
     canActivate: [authGuard],
     data: { title: 'Cadastrar Paciente' },
+  },
+    {
+    path: 'pacientes',
+    component: ListaPacientesComponent,
+    canActivate: [authGuard],
+    data: { title: 'Paciente' },
   },
   {
     path: 'configuracoes',

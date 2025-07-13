@@ -1,0 +1,108 @@
+<app-cabecalho></app-cabecalho>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Pacientes Cadastrados</h4>
+        </div>
+        <div class="card-body">
+          <!-- Mensagens de erro e sucesso -->
+          <div *ngIf="erro" class="alert alert-danger">
+            {{ erro }}
+          </div>
+          <div *ngIf="sucesso" class="alert alert-success">
+            {{ sucesso }}
+          </div>
+
+          <!-- Filtros e botão de cadastro -->
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Buscar paciente..."
+                  [(ngModel)]="termoBusca"
+                  aria-label="Buscar paciente"
+                >
+              </div>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" [(ngModel)]="statusFiltro">
+                <option value="ativos">Pacientes Ativos</option>
+                <option value="inativos">Pacientes Inativos</option>
+                <option value="todos">Todos os Pacientes</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <button class="btn btn-primary w-100" (click)="buscarPacientes()">Buscar</button>
+            </div>
+            <div class="col-md-3 text-end">
+              <button class="btn btn-success w-100" (click)="navegarParaCadastro()">Cadastrar Paciente</button>
+            </div>
+          </div>
+
+          <div class="list-group">
+            <div *ngFor="let paciente of pacientesFiltrados" class="list-group-item">
+              <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">
+                  {{ paciente.nome }} {{ paciente.sobrenome }}
+                  <span class="badge bg-success ms-2" *ngIf="paciente.ativo !== false">Ativo</span>
+                  <span class="badge bg-danger ms-2" *ngIf="paciente.ativo === false">Inativo</span>
+                </h5>
+                <div class="btn-group">
+                  <button class="btn btn-sm btn-primary" (click)="editarPaciente(paciente.id)">Editar</button>
+                  <button class="btn btn-sm btn-success ms-1" (click)="criarSessoesAdicionais(paciente.id)" *ngIf="paciente.ativo !== false">Atualizar Sessões</button>
+                  <button class="btn btn-sm btn-danger ms-1" (click)="inativarPaciente(paciente.id)" *ngIf="paciente.ativo !== false">Inativar</button>
+                  <button class="btn btn-sm btn-success ms-1" (click)="reativarPaciente(paciente.id)" *ngIf="paciente.ativo === false">Reativar</button>
+                </div>
+              </div>
+
+              <!-- Imagem do paciente -->
+              <div *ngIf="paciente.imagemBase64 && paciente.imagemTipo" class="mb-2">
+                <img [src]="'data:' + paciente.imagemTipo + ';base64,' + paciente.imagemBase64"
+                     alt="Foto do paciente"
+                     class="img-thumbnail"
+                     style="max-width: 100px; max-height: 100px;">
+              </div>
+
+              <p class="mb-1">Sexo: {{ paciente.sexo }}</p>
+              <p class="mb-1">Data de Nascimento: {{ paciente.dataNascimento | date:'dd/MM/yyyy' }}</p>
+
+              <!-- Contato do paciente -->
+              <div *ngIf="paciente.email || paciente.telefone" class="mb-2">
+                <p *ngIf="paciente.email" class="mb-1">Email: {{ paciente.email }}</p>
+                <p *ngIf="paciente.telefone" class="mb-1">Telefone: {{ paciente.telefone }}</p>
+              </div>
+
+              <!-- Agendamentos do paciente -->
+              <div *ngIf="paciente.agendamentos && paciente.agendamentos.length > 0">
+                <p class="mb-1"><strong>Próximos agendamentos:</strong></p>
+                <ul class="list-unstyled">
+                  <li *ngFor="let agendamento of paciente.agendamentos | slice:0:3">
+                    <small>
+                      {{ obterNomeDiaSemana(agendamento.data) }} -
+                      {{ agendamento.data | date:'dd/MM/yyyy' }} -
+                      {{ formatarHora(agendamento.horaInicio) }} às {{ formatarHora(agendamento.horaFim) }}
+                    </small>
+                  </li>
+                </ul>
+                <small *ngIf="paciente.agendamentos.length > 3" class="text-muted">
+                  E mais {{ paciente.agendamentos.length - 3 }} agendamentos...
+                </small>
+              </div>
+              <div *ngIf="!paciente.agendamentos || paciente.agendamentos.length === 0">
+                <p class="mb-1 text-muted"><small>Sem agendamentos ativos</small></p>
+              </div>
+            </div>
+            <div *ngIf="pacientesFiltrados.length === 0" class="list-group-item text-center">
+              Nenhum paciente encontrado
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

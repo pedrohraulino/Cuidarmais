@@ -50,6 +50,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/pacientes/*/agendamentos/**").permitAll() // Allow all patient appointment endpoints without authentication
+                        .requestMatchers("/api/pacientes/*/horario-atual").permitAll() // Allow access to the horario-atual endpoint without authentication
+                        .requestMatchers("/api/pacientes/*/inativar").permitAll() // Allow access to the inativar endpoint without authentication
+                        .requestMatchers("/api/pacientes/*/reativar").permitAll() // Allow access to the reativar endpoint without authentication
+                        .requestMatchers("/api/pacientes/*/criar-sessoes-adicionais").permitAll() // Allow access to the criar-sessoes-adicionais endpoint without authentication
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(tokenService, usuarioRepository),
@@ -69,6 +74,13 @@ public class SecurityConfig {
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L); // 1 hora de cache para pre-flight requests
+
+        System.out.println("CORS Configuration:");
+        System.out.println("Allowed Origins: " + config.getAllowedOrigins());
+        System.out.println("Allowed Methods: " + config.getAllowedMethods());
+        System.out.println("Allowed Headers: " + config.getAllowedHeaders());
+        System.out.println("Exposed Headers: " + config.getExposedHeaders());
+        System.out.println("Allow Credentials: " + config.getAllowCredentials());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

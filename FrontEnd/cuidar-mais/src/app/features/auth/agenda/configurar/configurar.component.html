@@ -138,8 +138,23 @@
         </div>
       </div>
 
-      <!-- Botão salvar -->
-      <div class="text-end">
+      <!-- Botões de ação -->
+      <div class="d-flex justify-content-end">
+        <button
+          type="button"
+          class="btn btn-danger me-2"
+          (click)="resetarConfiguracao(getConfiguracao(dia.id).id!)"
+          [disabled]="resetando || !getConfiguracao(dia.id).id"
+          *ngIf="getConfiguracao(dia.id).id"
+        >
+          <span
+            *ngIf="resetando"
+            class="spinner-border spinner-border-sm me-1"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          {{ resetando ? "Resetando..." : "Resetar Configuração" }}
+        </button>
         <button
           type="button"
           class="btn btn-primary"

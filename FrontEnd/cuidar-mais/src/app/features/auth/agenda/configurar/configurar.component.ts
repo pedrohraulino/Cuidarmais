@@ -39,12 +39,15 @@ export class ConfigurarComponent implements OnInit {
   ];
 
   configuracoes: ConfiguracaoHorario[] = [];
+  // Cache para armazenar as configurações por dia da semana
+  configuracoesCache: { [key: string]: ConfiguracaoHorario } = {};
 
   carregandoConfiguracoes = false;
   salvando = false;
 
   mensagemErro = '';
   mensagemSucesso = '';
+  resetando = false;
 
   constructor(private http: HttpClient) {}
 
@@ -57,10 +60,19 @@ export class ConfigurarComponent implements OnInit {
     this.carregandoConfiguracoes = true;
     this.mensagemErro = '';
 
+    // Limpa o cache de configurações
+    this.configuracoesCache = {};
+
     this.http.get<ConfiguracaoHorario[]>('http://localhost:8080/api/configuracao-agenda')
       .subscribe({
         next: (data) => {
           this.configuracoes = data;
+
+          // Pré-popula o cache com as configurações carregadas
+          data.forEach(config => {
+            this.configuracoesCache[config.diaSemana] = config;
+          });
+
           this.carregandoConfiguracoes = false;
         },
         error: (error) => {
@@ -98,13 +110,21 @@ export class ConfigurarComponent implements OnInit {
 
 
   getConfiguracao(diaSemana: string): ConfiguracaoHorario {
+    // Verifica se já existe no cache
+    if (this.configuracoesCache[diaSemana]) {
+      return this.configuracoesCache[diaSemana];
+    }
+
+    // Procura na lista de configurações
     const config = this.configuracoes.find(c => c.diaSemana === diaSemana);
 
     if (config) {
+      // Armazena no cache e retorna
+      this.configuracoesCache[diaSemana] = config;
       return config;
     } else {
-      // Retorna uma configuração padrão se não existir
-      return {
+      // Cria uma configuração padrão, armazena no cache e retorna
+      const defaultConfig: ConfiguracaoHorario = {
         diaSemana: diaSemana,
         ativo: diaSemana !== 'SATURDAY' && diaSemana !== 'SUNDAY', // Desativa sábado e domingo por padrão
         horarioInicio: '08:00',
@@ -113,6 +133,8 @@ export class ConfigurarComponent implements OnInit {
         fimPausa: '13:00',
         intervaloMinutos: 60
       };
+      this.configuracoesCache[diaSemana] = defaultConfig;
+      return defaultConfig;
     }
   }
 
@@ -171,6 +193,9 @@ export class ConfigurarComponent implements OnInit {
               this.configuracoes[index] = configuracaoAtualizada;
             }
 
+            // Atualizar o cache
+            this.configuracoesCache[configuracaoAtualizada.diaSemana] = configuracaoAtualizada;
+
             this.mensagemSucesso = 'Configuração atualizada com sucesso!';
             this.salvando = false;
           },
@@ -189,6 +214,9 @@ export class ConfigurarComponent implements OnInit {
 
             // Adicionar a nova configuração à lista local
             this.configuracoes.push(configuracaoNova);
+
+            // Atualizar o cache
+            this.configuracoesCache[configuracaoNova.diaSemana] = configuracaoNova;
 
             this.mensagemSucesso = 'Configuração criada com sucesso!';
             this.salvando = false;
@@ -215,6 +243,58 @@ export class ConfigurarComponent implements OnInit {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
+    });
+  }
+
+  verificarPodeResetarConfiguracao(configuracaoId: number) {
+    return this.http.get<any>(`http://localhost:8080/api/configuracao-agenda/${configuracaoId}/pode-excluir`);
+  }
+
+  resetarConfiguracao(configuracaoId: number) {
+    this.resetando = true;
+    this.mensagemErro = '';
+    this.mensagemSucesso = '';
+
+    // Encontra a configuração pelo ID para obter o dia da semana
+    const configuracao = this.configuracoes.find(c => c.id === configuracaoId);
+    if (!configuracao) {
+      this.mensagemErro = 'Configuração não encontrada';
+      this.resetando = false;
+      return;
+    }
+
+    const diaSemana = configuracao.diaSemana;
+
+    this.verificarPodeResetarConfiguracao(configuracaoId).subscribe({
+      next: (response) => {
+        if (response.podeExcluir) {
+          this.http.delete(`http://localhost:8080/api/configuracao-agenda/${configuracaoId}`).subscribe({
+            next: () => {
+              this.mensagemSucesso = 'Configuração resetada com sucesso!';
+
+              // Remove a configuração do cache
+              if (this.configuracoesCache[diaSemana]) {
+                delete this.configuracoesCache[diaSemana];
+              }
+
+              // Recarrega as configurações do servidor
+              this.carregarConfiguracoes();
+              this.resetando = false;
+            },
+            error: (err) => {
+              this.mensagemErro = 'Erro ao resetar configuração: ' + (err.error?.erro || 'Erro desconhecido');
+              this.resetando = false;
+            }
+          });
+        } else {
+          this.mensagemErro = 'Não é possível resetar esta configuração porque existem pacientes vinculados aos horários.';
+          this.resetando = false;
+        }
+      },
+      error: (err) => {
+        this.mensagemErro = 'Erro ao verificar se configuração pode ser resetada: ' + (err.error?.erro || 'Erro desconhecido');
+        this.resetando = false;
+      }
     });
   }
 }

@@ -21,7 +21,8 @@ public class ConfiguracaoAgenda {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "usuario_id", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_configuracao_agenda_psicologo"))
     private Usuario psicologo;
 
     @Enumerated(EnumType.STRING)

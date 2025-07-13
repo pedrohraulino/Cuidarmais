@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
@@ -19,14 +20,64 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
     List<Agendamento> findByPsicologo(Usuario psicologo);
 
     /**
+     * Busca todos os agendamentos ativos de um psicólogo
+     */
+    List<Agendamento> findByPsicologoAndAtivo(Usuario psicologo, Boolean ativo);
+
+    /**
      * Busca todos os agendamentos de um psicólogo em uma data específica
      */
     List<Agendamento> findByPsicologoAndData(Usuario psicologo, LocalDate data);
 
     /**
+     * Busca todos os agendamentos ativos de um psicólogo em uma data específica
+     */
+    List<Agendamento> findByPsicologoAndDataAndAtivo(Usuario psicologo, LocalDate data, Boolean ativo);
+
+    /**
      * Busca todos os agendamentos de um psicólogo em uma data e horário específicos
      */
     List<Agendamento> findByPsicologoAndDataAndHoraInicio(Usuario psicologo, LocalDate data, LocalTime horaInicio);
+
+    /**
+     * Busca todos os agendamentos ativos de um psicólogo em uma data e horário específicos
+     */
+    List<Agendamento> findByPsicologoAndDataAndHoraInicioAndAtivo(Usuario psicologo, LocalDate data, LocalTime horaInicio, Boolean ativo);
+
+    /**
+     * Busca todos os agendamentos de um paciente
+     */
+    List<Agendamento> findByPaciente(Usuario paciente);
+
+    /**
+     * Busca todos os agendamentos ativos de um paciente
+     */
+    List<Agendamento> findByPacienteAndAtivo(Usuario paciente, Boolean ativo);
+
+    /**
+     * Busca todos os agendamentos de um paciente com status AGENDADO
+     */
+    List<Agendamento> findByPacienteAndStatus(Usuario paciente, Agendamento.StatusAgendamento status);
+
+    /**
+     * Busca todos os agendamentos ativos de um paciente com status específico
+     */
+    List<Agendamento> findByPacienteAndStatusAndAtivo(Usuario paciente, Agendamento.StatusAgendamento status, Boolean ativo);
+
+    /**
+     * Busca todos os agendamentos de uma série
+     */
+    List<Agendamento> findBySerieId(UUID serieId);
+
+    /**
+     * Busca todos os agendamentos ativos de uma série
+     */
+    List<Agendamento> findBySerieIdAndAtivo(UUID serieId, Boolean ativo);
+
+    /**
+     * Busca todos os agendamentos ativos e agendados de uma série
+     */
+    List<Agendamento> findBySerieIdAndStatusAndAtivo(UUID serieId, Agendamento.StatusAgendamento status, Boolean ativo);
 
     /**
      * Verifica se existe algum agendamento para um psicólogo em uma data e intervalo de horário específicos

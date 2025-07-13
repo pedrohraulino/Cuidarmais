@@ -19,8 +19,17 @@ public class UsuarioService {
      * Busca um usuário pelo ID
      */
     public Usuario buscarPorId(Long id) {
-        return usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        System.out.println("[UsuarioService] Buscando usuário com ID: " + id);
+        try {
+            Usuario usuario = usuarioRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            System.out.println("[UsuarioService] Usuário encontrado: " + usuario.getEmail() + " (ID: " + usuario.getId() + ")");
+            return usuario;
+        } catch (Exception e) {
+            System.err.println("[UsuarioService] Erro ao buscar usuário com ID: " + id);
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     /**

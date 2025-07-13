@@ -1,1 +1,206 @@
 <app-cabecalho></app-cabecalho>
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Formulário de cadastro -->
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Cadastro de Paciente</h4>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="cadastrarPaciente()" #form="ngForm">
+            <!-- Mensagens de erro locais (mensagens de sucesso são exibidas na lista de pacientes) -->
+            <div *ngIf="erro" class="alert alert-danger">
+              {{ erro }}
+            </div>
+
+            <!-- Dados do Paciente -->
+            <h5 class="mb-3">Dados Pessoais</h5>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="nome">Nome</label>
+                  <input
+                    type="text"
+                    id="nome"
+                    name="nome"
+                    [(ngModel)]="nome"
+                    class="form-control"
+                    required
+                    placeholder="Nome do paciente"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="sobrenome">Sobrenome</label>
+                  <input
+                    type="text"
+                    id="sobrenome"
+                    name="sobrenome"
+                    [(ngModel)]="sobrenome"
+                    class="form-control"
+                    required
+                    placeholder="Sobrenome do paciente"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="sexo">Sexo</label>
+                  <select
+                    id="sexo"
+                    name="sexo"
+                    [(ngModel)]="sexo"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Selecione</option>
+                    <option value="MASCULINO">Masculino</option>
+                    <option value="FEMININO">Feminino</option>
+                    <option value="OUTRO">Outro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="dataNascimento">Data de Nascimento</label>
+                  <input
+                    type="date"
+                    id="dataNascimento"
+                    name="dataNascimento"
+                    [(ngModel)]="dataNascimento"
+                    class="form-control"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="email">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    [(ngModel)]="email"
+                    class="form-control"
+                    placeholder="Email do paciente"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="telefone">Telefone</label>
+                  <input
+                    type="tel"
+                    id="telefone"
+                    name="telefone"
+                    [(ngModel)]="telefone"
+                    class="form-control"
+                    placeholder="Telefone do paciente"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-12">
+                <div class="form-group">
+                  <label for="imagem">Foto do Paciente</label>
+                  <input
+                    type="file"
+                    id="imagem"
+                    name="imagem"
+                    class="form-control"
+                    accept="image/*"
+                    (change)="onImagemSelecionada($event)"
+                  />
+                  <small class="text-muted">Opcional. Formatos aceitos: JPG, PNG, GIF.</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dados do Agendamento -->
+            <h5 class="mb-3 mt-4">Dados do Agendamento</h5>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="diaSemana">Dia de Atendimento</label>
+                  <select
+                    id="diaSemana"
+                    name="diaSemana"
+                    [(ngModel)]="diaSemana"
+                    (change)="onDiaSemanaChange()"
+                    class="form-control"
+                    required
+                  >
+                    <option value="">Selecione</option>
+                    <option *ngFor="let dia of diasSemana" [value]="dia.valor">{{ dia.nome }}</option>
+                  </select>
+                  <small *ngIf="modoEdicao" class="text-warning">
+                    <strong>Atenção:</strong> Alterar o dia de atendimento transferirá todas as sessões agendadas para o novo dia.
+                  </small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="horarioId">Horário</label>
+                  <select
+                    id="horarioId"
+                    name="horarioId"
+                    [(ngModel)]="horarioId"
+                    class="form-control"
+                    required
+                    [disabled]="(!diaSemana || horarios.length === 0) && !modoEdicao"
+                  >
+                    <option value="">Selecione</option>
+                    <option *ngFor="let horario of horarios" [value]="horario.id">{{ horario.horario }}</option>
+                  </select>
+                  <small *ngIf="diaSemana && horarios.length === 0" class="text-muted">
+                    Não há horários disponíveis para este dia.
+                  </small>
+                  <small *ngIf="modoEdicao" class="text-warning">
+                    <strong>Atenção:</strong> Alterar o horário transferirá todas as sessões agendadas para o novo horário.
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="totalSessoes">Total de Sessões</label>
+                  <input
+                    type="number"
+                    id="totalSessoes"
+                    name="totalSessoes"
+                    [(ngModel)]="totalSessoes"
+                    class="form-control"
+                    required
+                    min="1"
+                  />
+                  <small class="text-muted">
+                    Número de sessões semanais a serem agendadas.
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="form-group mt-4">
+              <button type="submit" class="btn btn-primary">Cadastrar Paciente</button>
+              <button type="button" class="btn btn-secondary ms-2" (click)="voltarParaListaPacientes()">Voltar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

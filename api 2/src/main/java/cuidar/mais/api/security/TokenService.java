@@ -57,6 +57,8 @@ public class TokenService {
             Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
             return true;
         } catch (Exception e) {
+            System.err.println("Error validating token: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
