@@ -178,7 +178,7 @@ export class ListaPacientesComponent implements OnInit {
   }
 
   editarPaciente(pacienteId: number) {
-    this.router.navigate(['/pacientes/cadastrar'], { queryParams: { id: pacienteId, modo: 'edicao' } });
+    this.router.navigate([`/pacientes/editar/${pacienteId}`]);
   }
 
   inativarPaciente(pacienteId: number) {

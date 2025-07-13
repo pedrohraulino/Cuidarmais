@@ -14,11 +14,17 @@ const routes: Routes = [
     canActivate: [authGuard],
     data: { title: 'Cadastrar Paciente' },
   },
-    {
+  {
+    path: 'pacientes/editar/:id',
+    component: CadastrarPacienteComponent,
+    canActivate: [authGuard],
+    data: { title: 'Editar Paciente' },
+  },
+  {
     path: 'pacientes',
     component: ListaPacientesComponent,
     canActivate: [authGuard],
-    data: { title: 'Paciente' },
+    data: { title: 'Pacientes' },
   },
   {
     path: 'configuracoes',
@@ -29,6 +35,7 @@ const routes: Routes = [
 
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 ];
+
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],

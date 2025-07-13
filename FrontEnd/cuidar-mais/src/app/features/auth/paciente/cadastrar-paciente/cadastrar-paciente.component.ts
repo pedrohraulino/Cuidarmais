@@ -1,9 +1,10 @@
+
 import { Component, OnInit, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
 import { CabecalhoModule } from '../../../../cabecalho/cabecalho.module';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Router, ActivatedRoute, Params } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../auth.service';
 import { MessageService } from '../../../../shared/message.service';
 
@@ -86,6 +87,15 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
   modoEdicao = false;
   pacienteId: number | null = null;
 
+  // Propriedades para títulos dinâmicos
+  get tituloFormulario(): string {
+    return this.modoEdicao ? 'Editar Paciente' : 'Cadastrar Paciente';
+  }
+
+  get textoBotao(): string {
+    return this.modoEdicao ? 'Atualizar Paciente' : 'Cadastrar Paciente';
+  }
+
   // Flag para controlar a verificação do horarioId no DOM
   private checkHorarioIdInView = false;
   private horarioIdToCheck = '';
@@ -135,8 +145,16 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
       return;
     }
 
-    // Verifica se está em modo de edição
-    this.route.queryParams.subscribe((params: Params) => {
+    // Verifica se está em modo de edição através dos parâmetros da rota
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.modoEdicao = true;
+        this.pacienteId = +params['id'];
+      }
+    });
+
+    // Também verifica query params para compatibilidade com código existente
+    this.route.queryParams.subscribe(params => {
       if (params['id'] && params['modo'] === 'edicao') {
         this.modoEdicao = true;
         this.pacienteId = +params['id'];
@@ -175,7 +193,7 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
     }
   }
 
-
+  // ... resto dos métodos permanecem iguais
   carregarConfiguracoes() {
     if (!this.psicologoId) return;
 
@@ -372,6 +390,12 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
 
     if (!horarioAtual || !horarioAtual.id) {
       console.log('Horário atual inválido, não será incluído no select');
+      return;
+    }
+
+    // Verifica se o dia atual selecionado corresponde ao dia do horário atual
+    if (horarioAtual.diaSemana && this.diaSemana !== horarioAtual.diaSemana) {
+      console.log('Dia selecionado não corresponde ao dia do horário atual, não será incluído no select');
       return;
     }
 
@@ -611,15 +635,6 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
               }
             }
           });
-        }
-
-        // Atualiza o título do formulário
-        document.querySelector('.card-header h4')!.textContent = 'Editar Paciente';
-
-        // Atualiza o texto do botão de submit
-        const submitButton = document.querySelector('button[type="submit"]') as HTMLButtonElement;
-        if (submitButton) {
-          submitButton.textContent = 'Atualizar Paciente';
         }
       },
       error: (err) => {

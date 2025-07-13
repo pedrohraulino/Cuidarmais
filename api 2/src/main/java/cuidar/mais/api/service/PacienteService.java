@@ -116,7 +116,7 @@ public class PacienteService {
             final String nomeCompleto = paciente.getNome() + " " + paciente.getSobrenome();
 
             // Cria um email único baseado no nome e ID do paciente
-            String email = nomeEmail + "." + sobrenomeEmail + "." + pacienteId + "@paciente.com";
+            String email = paciente.getEmail();
 
             pacienteUsuario = new Usuario();
             pacienteUsuario.setNome(nomeCompleto);
