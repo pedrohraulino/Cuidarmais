@@ -49,7 +49,9 @@ interface PacienteRequest {
   imagemBase64?: string;
   imagemTipo?: string;
   psicologoId: number | null;
-  horarioDisponivelId?: number;
+  diaSemana?: string;
+  horarioInicio?: string;
+  horarioFim?: string;
   sessoesPorPacote: number;
   ativo: boolean;
 }
@@ -278,8 +280,24 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
 
     // Adiciona dados de horário apenas se foram selecionados
     if (this.diaSemana && this.horarioId) {
-      // Adiciona o ID do horário disponível para vincular ao paciente
-      pacienteData.horarioDisponivelId = parseInt(this.horarioId);
+      // Busca dados do horário selecionado
+      const horarioSelecionado = this.horarios.find(h => h.id.toString() === this.horarioId);
+      if (horarioSelecionado) {
+        // Busca informações completas do horário
+        this.http.get<any>(`http://localhost:8080/api/horarios-disponiveis/${this.horarioId}`).subscribe({
+          next: (horarioCompleto) => {
+            pacienteData.diaSemana = horarioCompleto.diaSemana;
+            pacienteData.horarioInicio = horarioCompleto.horaInicio;
+            pacienteData.horarioFim = horarioCompleto.horaFim;
+            
+            this.enviarDadosPaciente(pacienteData);
+          },
+          error: (err) => {
+            this.erro = 'Erro ao buscar dados do horário: ' + (err.error?.erro || 'Erro desconhecido');
+          }
+        });
+        return;
+      }
     }
 
     this.enviarDadosPaciente(pacienteData);

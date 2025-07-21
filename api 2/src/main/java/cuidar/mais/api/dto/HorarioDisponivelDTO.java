@@ -11,7 +11,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HorarioDisponivelDTO {
-    
+
     private Long id;
     private Long configuracaoAgendaId;
     private Long psicologoId;
@@ -19,5 +19,29 @@ public class HorarioDisponivelDTO {
     private LocalTime horaInicio;
     private LocalTime horaFim;
     private Boolean ativo;
-    private Boolean disponivel; // Indica se o horário está disponível para agendamento
+    private Boolean disponivel;
+    private Long pacienteId; // ID do paciente que ocupa o horário (se houver)
+    private String nomePaciente; // Nome do paciente que ocupa o horário (se houver)
+
+    // Métodos auxiliares
+    public String getHorarioFormatado() {
+        if (horaInicio != null && horaFim != null) {
+            return horaInicio.toString() + " - " + horaFim.toString();
+        }
+        return "";
+    }
+
+    public String getNomeDiaSemana() {
+        if (diaSemana == null) return null;
+        
+        return switch (diaSemana) {
+            case MONDAY -> "Segunda-feira";
+            case TUESDAY -> "Terça-feira";
+            case WEDNESDAY -> "Quarta-feira";
+            case THURSDAY -> "Quinta-feira";
+            case FRIDAY -> "Sexta-feira";
+            case SATURDAY -> "Sábado";
+            case SUNDAY -> "Domingo";
+        };
+    }
 }

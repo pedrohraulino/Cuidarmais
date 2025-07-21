@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/horarios-disponiveis")
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4201", "http://localhost:3000"})
 public class HorarioDisponivelController {
 
     @Autowired
@@ -47,5 +48,36 @@ public class HorarioDisponivelController {
             @PathVariable LocalDate data) {
         List<HorarioDisponivelDTO> horarios = horarioDisponivelService.buscarHorariosDisponiveisComDisponibilidade(psicologoId, diaSemana, data);
         return ResponseEntity.ok(horarios);
+    }
+
+    /**
+     * Busca todos os horários livres (não ocupados por pacientes)
+     */
+    @GetMapping("/psicologo/{psicologoId}/livres")
+    public ResponseEntity<List<HorarioDisponivelDTO>> buscarHorariosLivres(@PathVariable Long psicologoId) {
+        List<HorarioDisponivelDTO> horarios = horarioDisponivelService.buscarHorariosLivres(psicologoId);
+        return ResponseEntity.ok(horarios);
+    }
+
+    /**
+     * Busca todos os horários ocupados por pacientes
+     */
+    @GetMapping("/psicologo/{psicologoId}/ocupados")
+    public ResponseEntity<List<HorarioDisponivelDTO>> buscarHorariosOcupados(@PathVariable Long psicologoId) {
+        List<HorarioDisponivelDTO> horarios = horarioDisponivelService.buscarHorariosOcupados(psicologoId);
+        return ResponseEntity.ok(horarios);
+    }
+
+    /**
+     * Busca horário específico pelo ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<HorarioDisponivelDTO> buscarPorId(@PathVariable Long id) {
+        try {
+            HorarioDisponivelDTO horario = horarioDisponivelService.buscarPorId(id);
+            return ResponseEntity.ok(horario);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

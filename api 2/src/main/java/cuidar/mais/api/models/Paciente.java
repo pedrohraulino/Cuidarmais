@@ -48,8 +48,12 @@ public class Paciente {
                 foreignKey = @ForeignKey(name = "fk_paciente_psicologo"))
     private Usuario psicologo;
 
-    @Column(name = "total_sessoes", nullable = false)
-    private Integer totalSessoes;
+    // Campo para vincular ao horário disponível
+    @Column(name = "horario_disponivel_id")
+    private Long horarioDisponivelId;
+
+    @Column(name = "sessoes_por_pacote", nullable = false)
+    private Integer sessoesPorPacote;
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDate dataCriacao = LocalDate.now();
@@ -63,6 +67,15 @@ public class Paciente {
             return "data:" + imagemTipo + ";base64," + imagemBase64;
         }
         return null;
+    }
+
+    // Métodos auxiliares
+    public String getNomeCompleto() {
+        return nome + " " + sobrenome;
+    }
+
+    public boolean temHorarioDefinido() {
+        return horarioDisponivelId != null;
     }
 
     // Enum para sexo

@@ -21,16 +21,13 @@ public class ConfiguracaoAgenda {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "usuario_id", nullable = false,
+    @JoinColumn(name = "psicologo_id", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_configuracao_agenda_psicologo"))
     private Usuario psicologo;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "dia_semana", nullable = false)
     private DayOfWeek diaSemana;
-
-    @Column(name = "ativo", nullable = false)
-    private Boolean ativo = true;
 
     @Column(name = "horario_inicio", nullable = false)
     private LocalTime horarioInicio;
@@ -44,9 +41,20 @@ public class ConfiguracaoAgenda {
     @Column(name = "inicio_pausa")
     private LocalTime inicioPausa;
 
-    @Column(name = "fim_pausa")
-    private LocalTime fimPausa;
+    @Column(name = "volta_pausa")
+    private LocalTime voltaPausa;
+
+    @Column(name = "ativo", nullable = false)
+    private Boolean ativo = true;
+
+    @Column(name = "data_criacao", nullable = false)
+    private LocalDateTime dataCriacao = LocalDateTime.now();
 
     @Column(name = "data_atualizacao")
     private LocalDateTime dataAtualizacao;
+
+    @PreUpdate
+    public void preUpdate() {
+        this.dataAtualizacao = LocalDateTime.now();
+    }
 }

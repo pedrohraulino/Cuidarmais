@@ -7,13 +7,15 @@ import { AuthService } from '../../auth.service';
 import { MessageService } from '../../../../shared/message.service';
 import { FormsModule } from '@angular/forms';
 
-// Interfaces para tipagem
-interface Agendamento {
+// Interfaces para tipagem atualizadas
+interface Sessao {
   id: number;
-  data: string;
+  dataSessao: string;
   horaInicio: string;
   horaFim: string;
-  status: string;
+  numeroSessao: number;
+  status: 'AGENDADA' | 'REALIZADA' | 'CANCELADA';
+  observacoes?: string;
 }
 
 interface Paciente {
@@ -26,8 +28,21 @@ interface Paciente {
   telefone: string;
   imagemBase64?: string;
   imagemTipo?: string;
-  ativo?: boolean;
-  agendamentos?: Agendamento[];
+  psicologoId: number;
+  diaSemana?: string;
+  horarioInicio?: string;
+  horarioFim?: string;
+  sessoesPorPacote: number;
+  ativo: boolean;  // Removido o "?" para tornar obrigatório
+  sessoes?: Sessao[];
+  sessoesRestantes?: number;
+  sessoesRealizadas?: number;
+  horarioDisponivel?: {
+    id: number;
+    diaSemana: string;
+    horaInicio: string;
+    horaFim: string;
+  };
 }
 
 @Component({
@@ -97,9 +112,9 @@ export class ListaPacientesComponent implements OnInit {
   carregarPacientes() {
     if (!this.psicologoId) return;
 
-    this.http.get<Paciente[]>(`http://localhost:8080/api/pacientes/psicologo/${this.psicologoId}`).subscribe({
+    this.http.get<Paciente[]>(`http://localhost:8080/api/pacientes/psicologo/${this.psicologoId}/todos`).subscribe({
       next: (pacientes) => {
-        // Para cada paciente, buscar seus agendamentos agendados
+        // Para cada paciente, buscar suas sessões
         this.pacientes = [];
 
         if (pacientes.length === 0) {
@@ -110,10 +125,12 @@ export class ListaPacientesComponent implements OnInit {
         let pacientesProcessados = 0;
 
         pacientes.forEach(paciente => {
-          this.http.get<Agendamento[]>(`http://localhost:8080/api/pacientes/${paciente.id}/agendamentos/ativos-agendados`).subscribe({
-            next: (agendamentos) => {
-              // Adicionar informações de agendamento ao paciente
-              paciente.agendamentos = agendamentos;
+          this.http.get<Sessao[]>(`http://localhost:8080/api/sessoes/paciente/${paciente.id}`).subscribe({
+            next: (sessoes) => {
+              // Adicionar informações de sessões ao paciente
+              paciente.sessoes = sessoes;
+              paciente.sessoesRestantes = sessoes.filter(s => s.status === 'AGENDADA').length;
+              paciente.sessoesRealizadas = sessoes.filter(s => s.status === 'REALIZADA').length;
               this.pacientes.push(paciente);
 
               pacientesProcessados++;
@@ -125,8 +142,9 @@ export class ListaPacientesComponent implements OnInit {
               }
             },
             error: (err) => {
-              console.error('Erro ao carregar agendamentos do paciente:', err);
-              paciente.agendamentos = [];
+              paciente.sessoes = [];
+              paciente.sessoesRestantes = 0;
+              paciente.sessoesRealizadas = 0;
               this.pacientes.push(paciente);
 
               pacientesProcessados++;
@@ -150,7 +168,7 @@ export class ListaPacientesComponent implements OnInit {
     // Filtra por status (ativo/inativo)
     let pacientesFiltradosPorStatus = this.pacientes;
     if (this.statusFiltro === 'ativos') {
-      pacientesFiltradosPorStatus = this.pacientes.filter(p => p.ativo !== false);
+      pacientesFiltradosPorStatus = this.pacientes.filter(p => p.ativo === true);
     } else if (this.statusFiltro === 'inativos') {
       pacientesFiltradosPorStatus = this.pacientes.filter(p => p.ativo === false);
     }
@@ -167,6 +185,15 @@ export class ListaPacientesComponent implements OnInit {
     } else {
       this.pacientesFiltrados = pacientesFiltradosPorStatus;
     }
+
+    console.log('Aplicando filtros:');
+    console.log('- Todos os pacientes:', this.pacientes.length);
+    console.log('- Status filtro:', this.statusFiltro);
+    console.log('- Pacientes após filtro de status:', pacientesFiltradosPorStatus.length);
+    console.log('- Pacientes finais após busca:', this.pacientesFiltrados.length);
+    
+    // Log para debug dos status dos pacientes
+    console.log('Status dos pacientes:', this.pacientes.map(p => ({ nome: p.nome, ativo: p.ativo })));
   }
 
   buscarPacientes() {
@@ -223,7 +250,15 @@ export class ListaPacientesComponent implements OnInit {
     }
   }
 
-  obterNomeDiaSemana(dia: string): string {
+  obterNomeDiaSemana(entrada: string): string {
+    // Se for uma data no formato ISO, extrair o dia da semana
+    if (entrada.includes('-')) {
+      const data = new Date(entrada);
+      const diasSemana = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+      return diasSemana[data.getDay()];
+    }
+
+    // Se for o nome do dia em inglês (formato enum)
     const dias: {[key: string]: string} = {
       'MONDAY': 'Segunda-feira',
       'TUESDAY': 'Terça-feira',
@@ -233,12 +268,84 @@ export class ListaPacientesComponent implements OnInit {
       'SATURDAY': 'Sábado',
       'SUNDAY': 'Domingo'
     };
-    return dias[dia] || dia;
+    return dias[entrada.toUpperCase()] || entrada;
   }
 
   formatarHora(hora: string): string {
     if (!hora) return '';
     const [h, m] = hora.split(':');
     return `${h}:${m}`;
+  }
+
+  calcularIdade(dataNascimento: string): number {
+    const nascimento = new Date(dataNascimento);
+    const hoje = new Date();
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const mes = hoje.getMonth() - nascimento.getMonth();
+
+    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+      idade--;
+    }
+
+    return idade;
+  }
+
+  formatarDataNascimento(dataNascimento: string): string {
+    const data = new Date(dataNascimento);
+    const dia = data.getDate().toString().padStart(2, '0');
+    const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+    const ano = data.getFullYear();
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  calcularSessoesRestantes(paciente: Paciente): number {
+    // Retorna o número de sessões restantes já calculado
+    return paciente.sessoesRestantes || 0;
+  }
+
+  obterDiaEHorario(paciente: Paciente): string {
+    // Primeira opção: usar dados diretamente do paciente (nova estrutura)
+    if (paciente.diaSemana && paciente.horarioInicio && paciente.horarioFim) {
+      const dia = this.obterNomeDiaSemana(paciente.diaSemana);
+      const horaInicio = this.formatarHora(paciente.horarioInicio);
+      const horaFim = this.formatarHora(paciente.horarioFim);
+      return `${dia} - ${horaInicio} às ${horaFim}`;
+    }
+
+    // Segunda opção: usar dados do horário disponível (compatibilidade)
+    if (paciente.horarioDisponivel) {
+      const dia = this.obterNomeDiaSemana(paciente.horarioDisponivel.diaSemana);
+      const horaInicio = this.formatarHora(paciente.horarioDisponivel.horaInicio);
+      const horaFim = this.formatarHora(paciente.horarioDisponivel.horaFim);
+      return `${dia} - ${horaInicio} às ${horaFim}`;
+    }
+
+    // Terceira opção: usar informações da primeira sessão se disponível
+    if (paciente.sessoes && paciente.sessoes.length > 0) {
+      const primeiraSessao = paciente.sessoes[0];
+      const data = new Date(primeiraSessao.dataSessao);
+      const diaSemana = data.toLocaleDateString('pt-BR', { weekday: 'long' });
+      const horaInicio = this.formatarHora(primeiraSessao.horaInicio);
+      const horaFim = this.formatarHora(primeiraSessao.horaFim);
+      return `${diaSemana} - ${horaInicio} às ${horaFim}`;
+    }
+
+    return 'Não definido';
+  }
+
+  getInitials(nome: string, sobrenome: string): string {
+    const primeiraLetraNome = nome?.charAt(0)?.toUpperCase() || '';
+    const primeiraLetraSobrenome = sobrenome?.charAt(0)?.toUpperCase() || '';
+    return primeiraLetraNome + primeiraLetraSobrenome;
+  }
+
+  limparBusca(): void {
+    this.termoBusca = '';
+    this.aplicarFiltros();
+  }
+
+  // Método para otimização do trackBy no *ngFor
+  trackByPatientId(index: number, paciente: Paciente): number {
+    return paciente.id;
   }
 }

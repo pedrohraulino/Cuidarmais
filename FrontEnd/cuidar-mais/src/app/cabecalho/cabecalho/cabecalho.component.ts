@@ -5,6 +5,7 @@ import {
 import { Router, NavigationEnd } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 import { filter, map } from 'rxjs';
+import { MessageService } from '../../shared/message.service';
 
 @Component({
   selector: 'app-cabecalho',
@@ -18,7 +19,8 @@ export class CabecalhoComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private psicologoService: PsicologoService
+    private psicologoService: PsicologoService,
+    private messageService: MessageService
   ) {}
 
   ngOnInit() {
@@ -29,23 +31,20 @@ export class CabecalhoComponent implements OnInit {
       )
       .subscribe((title) => {
         this.pageTitle = title;
+        // Clear messages when navigating between pages
+        this.messageService.clearMessages();
       });
     this.psicologoService.getDadosPsicologo().subscribe({
       next: (res) => {
-        console.log('Dados do psicólogo recebidos:', res);
-        console.log('CRP recebido:', res.crp);
-        console.log('Imagem recebida:', res.imagemDataUrl);
-
         this.psicologo = res;
         // Usar a imagem que já vem nos dados do psicólogo
         if (res.imagemDataUrl) {
-          console.log('Definindo imagemPreview com a imagem recebida');
           this.imagemPreview = res.imagemDataUrl;
-        } else {
-          console.log('Imagem não recebida ou nula');
         }
       },
-      error: (err) => console.error('Erro ao buscar psicólogo:', err),
+      error: (err) => {
+        // Error handled silently
+      },
     });
     this.pageTitle = this.extractTitleFromRoute();
   }
@@ -80,18 +79,15 @@ export class CabecalhoComponent implements OnInit {
         this.psicologoService.uploadImagemBase64(this.psicologo.id, this.imagemPreview)
           .subscribe(
             response => {
-              console.log('Upload realizado com sucesso:', response);
               // Atualizar o imagemDataUrl no objeto psicologo
               if (this.psicologo) {
                 this.psicologo.imagemDataUrl = this.imagemPreview!;
               }
             },
             error => {
-              console.error('Erro no upload:', error);
+              // Error handled silently
             }
           );
-      } else {
-        console.error('Erro: ID do psicólogo não disponível ou imagem não carregada');
       }
     };
     reader.readAsDataURL(arquivo);

@@ -13,7 +13,7 @@ interface ConfiguracaoHorario {
   horarioInicio: string; // Format: "HH:MM"
   horarioFim: string; // Format: "HH:MM"
   inicioPausa: string; // Format: "HH:MM"
-  fimPausa: string; // Format: "HH:MM"
+  voltaPausa: string; // Format: "HH:MM" - corrigido para corresponder ao backend
   intervaloMinutos: number;
   dataAtualizacao?: string; // ISO date string
 }
@@ -76,7 +76,6 @@ export class ConfigurarComponent implements OnInit {
           this.carregandoConfiguracoes = false;
         },
         error: (error) => {
-          console.error('Erro ao carregar configurações:', error);
           this.carregandoConfiguracoes = false;
 
           if (error.status === 404) {
@@ -96,12 +95,10 @@ export class ConfigurarComponent implements OnInit {
     this.http.get('http://localhost:8080/api/configuracao-agenda/inicializar')
       .subscribe({
         next: () => {
-          console.log('Configurações inicializadas com sucesso');
           this.mensagemSucesso = 'Configurações inicializadas com sucesso!';
           this.carregarConfiguracoes();
         },
         error: (error) => {
-          console.error('Erro ao inicializar configurações:', error);
           this.carregandoConfiguracoes = false;
           this.mensagemErro = 'Erro ao inicializar configurações. Tente novamente mais tarde.';
         }
@@ -130,7 +127,7 @@ export class ConfigurarComponent implements OnInit {
         horarioInicio: '08:00',
         horarioFim: '18:00',
         inicioPausa: '12:00',
-        fimPausa: '13:00',
+        voltaPausa: '13:00',
         intervaloMinutos: 60
       };
       this.configuracoesCache[diaSemana] = defaultConfig;
@@ -156,8 +153,8 @@ export class ConfigurarComponent implements OnInit {
     }
 
     // Verificar se horário de pausa início é menor que horário de pausa fim (se ambos estiverem preenchidos)
-    if (configuracao.inicioPausa && configuracao.fimPausa) {
-      if (configuracao.inicioPausa >= configuracao.fimPausa) {
+    if (configuracao.inicioPausa && configuracao.voltaPausa) {
+      if (configuracao.inicioPausa >= configuracao.voltaPausa) {
         return 'O Início da Pausa deve ser menor que a Volta da Pausa.';
       }
     }
@@ -185,8 +182,6 @@ export class ConfigurarComponent implements OnInit {
       this.http.put<ConfiguracaoHorario>(`http://localhost:8080/api/configuracao-agenda/${config.id}`, config)
         .subscribe({
           next: (configuracaoAtualizada) => {
-            console.log('Configuração atualizada com sucesso', configuracaoAtualizada);
-
             // Atualizar a configuração na lista local
             const index = this.configuracoes.findIndex(c => c.id === configuracaoAtualizada.id);
             if (index !== -1) {
@@ -200,7 +195,6 @@ export class ConfigurarComponent implements OnInit {
             this.salvando = false;
           },
           error: (error) => {
-            console.error('Erro ao atualizar configuração:', error);
             this.salvando = false;
             this.mensagemErro = 'Erro ao atualizar configuração. Tente novamente mais tarde.';
           }
@@ -210,8 +204,6 @@ export class ConfigurarComponent implements OnInit {
       this.http.post<ConfiguracaoHorario>('http://localhost:8080/api/configuracao-agenda', config)
         .subscribe({
           next: (configuracaoNova) => {
-            console.log('Configuração criada com sucesso', configuracaoNova);
-
             // Adicionar a nova configuração à lista local
             this.configuracoes.push(configuracaoNova);
 
@@ -222,7 +214,6 @@ export class ConfigurarComponent implements OnInit {
             this.salvando = false;
           },
           error: (error) => {
-            console.error('Erro ao criar configuração:', error);
             this.salvando = false;
             this.mensagemErro = 'Erro ao criar configuração. Tente novamente mais tarde.';
           }

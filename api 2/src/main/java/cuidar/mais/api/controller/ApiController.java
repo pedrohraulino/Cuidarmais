@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("")
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4201", "http://localhost:3000"})
 public class ApiController {
 
     @GetMapping

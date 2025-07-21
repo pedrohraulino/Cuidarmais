@@ -4,33 +4,41 @@
   <!-- Lista de dias da semana -->
   <div
     *ngIf="!carregandoConfiguracoes"
-    class="dias-semana-container overflow-auto"
+    class="container-page"
   >
     <!-- Mensagens de erro e sucesso -->
     <div
       *ngIf="mensagemErro"
-      class="alert alert-danger alert-dismissible fade show mb-3"
+      class="alert alert-danger"
       role="alert"
+      aria-live="polite"
     >
       {{ mensagemErro }}
       <button
         type="button"
-        class="btn-close"
+        class="alert-close"
         (click)="mensagemErro = ''"
-      ></button>
+        aria-label="Fechar mensagem de erro"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
     </div>
 
     <div
       *ngIf="mensagemSucesso"
-      class="alert alert-success alert-dismissible fade show mb-3"
+      class="alert alert-success"
       role="alert"
+      aria-live="polite"
     >
       {{ mensagemSucesso }}
       <button
         type="button"
-        class="btn-close"
+        class="alert-close"
         (click)="mensagemSucesso = ''"
-      ></button>
+        aria-label="Fechar mensagem de sucesso"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
     </div>
 
     <!-- Loader para configurações -->
@@ -108,15 +116,15 @@
           />
         </div>
         <div class="col-md-2">
-          <label [for]="'fimPausa' + dia.id" class="form-label"
+          <label [for]="'voltaPausa' + dia.id" class="form-label"
             >Volta da Pausa</label
           >
           <input
             type="time"
             class="form-control"
-            [id]="'fimPausa' + dia.id"
-            [name]="'fimPausa' + dia.id"
-            [(ngModel)]="getConfiguracao(dia.id).fimPausa"
+            [id]="'voltaPausa' + dia.id"
+            [name]="'voltaPausa' + dia.id"
+            [(ngModel)]="getConfiguracao(dia.id).voltaPausa"
           />
         </div>
       </div>
@@ -153,6 +161,7 @@
             role="status"
             aria-hidden="true"
           ></span>
+          <i *ngIf="!resetando" class="fas fa-undo" aria-hidden="true"></i>
           {{ resetando ? "Resetando..." : "Resetar Configuração" }}
         </button>
         <button
@@ -167,6 +176,7 @@
             role="status"
             aria-hidden="true"
           ></span>
+          <i *ngIf="!salvando" class="fas fa-save" aria-hidden="true"></i>
           {{ salvando ? "Salvando..." : "Salvar Configuração" }}
         </button>
       </div>

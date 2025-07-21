@@ -2,22 +2,18 @@ package cuidar.mais.api.service;
 
 import cuidar.mais.api.dto.ConfiguracaoAgendaDTO;
 import cuidar.mais.api.models.ConfiguracaoAgenda;
+import cuidar.mais.api.models.HorarioDisponivel;
 import cuidar.mais.api.models.Usuario;
 import cuidar.mais.api.repository.ConfiguracaoAgendaRepository;
-import cuidar.mais.api.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,190 +26,86 @@ public class ConfiguracaoAgendaService {
     private UsuarioService usuarioService;
 
     @Autowired
-    private AgendamentoService agendamentoService;
+    private HorarioDisponivelService horarioDisponivelService;
 
     @Autowired
-    private HorarioDisponivelService horarioDisponivelService;
+    private SessaoService sessaoService;
 
     /**
      * Busca todas as configurações de agenda de um psicólogo
      */
     public List<ConfiguracaoAgendaDTO> buscarPorPsicologo(Long psicologoId) {
-        Usuario psicologo = usuarioService.buscarPorId(psicologoId);
-
-        return configuracaoAgendaRepository.findByPsicologo(psicologo).stream()
+        List<ConfiguracaoAgenda> configuracoes = configuracaoAgendaRepository
+                .findByPsicologoIdAndAtivoTrueOrderByDiaSemana(psicologoId);
+        
+        return configuracoes.stream()
                 .map(this::converterParaDTO)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Busca uma configuração específica de agenda
+     * Busca uma configuração específica por ID
      */
     public ConfiguracaoAgendaDTO buscarPorId(Long id) {
         ConfiguracaoAgenda configuracao = configuracaoAgendaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Configuração de agenda não encontrada"));
-
+        
         return converterParaDTO(configuracao);
     }
 
     /**
-     * Verifica se todos os horários de uma configuração estão disponíveis
-     * @param psicologoId ID do psicólogo
-     * @param diaSemana Dia da semana
-     * @param data Data para verificar disponibilidade
-     * @param horarioInicio Hora de início
-     * @param horarioFim Hora de fim
-     * @param inicioPausa Hora de início da pausa
-     * @param fimPausa Hora de fim da pausa
-     * @param intervaloMinutos Intervalo entre atendimentos
-     * @return true se todos os horários estiverem disponíveis, false caso contrário
-     */
-    public boolean verificarDisponibilidadeHorarios(
-            Long psicologoId, 
-            DayOfWeek diaSemana, 
-            LocalDate data, 
-            LocalTime horarioInicio, 
-            LocalTime horarioFim, 
-            LocalTime inicioPausa, 
-            LocalTime fimPausa, 
-            Integer intervaloMinutos) {
-
-        // Duração de cada atendimento: 50 minutos
-        int duracaoAtendimento = 50;
-
-        // Horário atual para iteração
-        LocalTime horarioAtual = horarioInicio;
-
-        // Verifica todos os horários até o fim do expediente
-        while (horarioAtual.plusMinutes(duracaoAtendimento).isBefore(horarioFim) ||
-               horarioAtual.plusMinutes(duracaoAtendimento).equals(horarioFim)) {
-
-            // Verifica se o horário está dentro do período de pausa
-            boolean estaNaPausa = false;
-            if (inicioPausa != null && fimPausa != null) {
-                estaNaPausa = !horarioAtual.isBefore(inicioPausa) &&
-                              horarioAtual.isBefore(fimPausa);
-            }
-
-            // Verifica disponibilidade se não estiver na pausa
-            if (!estaNaPausa) {
-                LocalTime horarioFimAtendimento = horarioAtual.plusMinutes(duracaoAtendimento);
-
-                // Verifica se o horário está disponível
-                if (data != null && !agendamentoService.isHorarioDisponivel(
-                        psicologoId, data, horarioAtual, horarioFimAtendimento)) {
-                    return false; // Encontrou um horário indisponível
-                }
-            }
-
-            // Avança para o próximo horário considerando o intervalo
-            horarioAtual = horarioAtual.plusMinutes(duracaoAtendimento + intervaloMinutos);
-        }
-
-        return true; // Todos os horários estão disponíveis
-    }
-
-    /**
-     * Salva uma nova configuração de agenda ou atualiza uma existente
+     * Salva ou atualiza uma configuração de agenda
      */
     @Transactional
     public ConfiguracaoAgendaDTO salvar(ConfiguracaoAgendaDTO dto) {
         Usuario psicologo = usuarioService.buscarPorId(dto.getPsicologoId());
-
-        // Verifica se já existe configuração para este dia
-        Optional<ConfiguracaoAgenda> configuracaoExistente =
-                configuracaoAgendaRepository.findByPsicologoAndDiaSemana(psicologo, dto.getDiaSemana());
-
+        
         ConfiguracaoAgenda configuracao;
-        boolean isUpdate = false;
-
-        if (configuracaoExistente.isPresent() && (dto.getId() == null || !dto.getId().equals(configuracaoExistente.get().getId()))) {
-            // Atualiza a configuração existente
-            configuracao = configuracaoExistente.get();
-            isUpdate = true;
-        } else if (dto.getId() != null) {
-            // Busca a configuração pelo ID para atualizar
+        
+        if (dto.getId() != null) {
+            // Atualização
             configuracao = configuracaoAgendaRepository.findById(dto.getId())
-                    .orElseThrow(() -> new RuntimeException("Configuração de agenda não encontrada"));
-            isUpdate = true;
+                    .orElseThrow(() -> new RuntimeException("Configuração não encontrada"));
         } else {
-            // Cria uma nova configuração
-            configuracao = new ConfiguracaoAgenda();
-            configuracao.setPsicologo(psicologo);
-            configuracao.setDiaSemana(dto.getDiaSemana());
-        }
-
-        // Se for uma atualização, verifica se todos os horários estão disponíveis
-        if (isUpdate) {
-            // Obtém a data atual para o dia da semana da configuração
-            LocalDate dataAtual = LocalDate.now();
-            while (dataAtual.getDayOfWeek() != dto.getDiaSemana()) {
-                dataAtual = dataAtual.plusDays(1);
-            }
-
-            // Verifica se todos os horários estão disponíveis
-            boolean todosHorariosDisponiveis = verificarDisponibilidadeHorarios(
-                    dto.getPsicologoId(),
-                    dto.getDiaSemana(),
-                    dataAtual,
-                    dto.getHorarioInicio(),
-                    dto.getHorarioFim(),
-                    dto.getInicioPausa(),
-                    dto.getFimPausa(),
-                    dto.getIntervaloMinutos()
-            );
-
-            if (!todosHorariosDisponiveis) {
-                throw new RuntimeException("Não é possível atualizar a configuração porque existem horários indisponíveis");
+            // Nova configuração - verifica se já existe para este dia
+            var existente = configuracaoAgendaRepository
+                    .findByPsicologoAndDiaSemanaAndAtivoTrue(psicologo, dto.getDiaSemana());
+            
+            if (existente.isPresent()) {
+                configuracao = existente.get();
+            } else {
+                configuracao = new ConfiguracaoAgenda();
+                configuracao.setPsicologo(psicologo);
+                configuracao.setDiaSemana(dto.getDiaSemana());
             }
         }
 
-        // Atualiza os campos
-        configuracao.setAtivo(dto.getAtivo());
+        // Atualiza os dados
         configuracao.setHorarioInicio(dto.getHorarioInicio());
         configuracao.setIntervaloMinutos(dto.getIntervaloMinutos());
         configuracao.setHorarioFim(dto.getHorarioFim());
         configuracao.setInicioPausa(dto.getInicioPausa());
-        configuracao.setFimPausa(dto.getFimPausa());
+        configuracao.setVoltaPausa(dto.getVoltaPausa());
+        configuracao.setAtivo(dto.getAtivo() != null ? dto.getAtivo() : true);
 
-        // Define a data de atualização como a data e hora atual
-        configuracao.setDataAtualizacao(LocalDateTime.now());
-
-        // Salva a configuração
         configuracao = configuracaoAgendaRepository.save(configuracao);
 
-        // Gera e salva os horários disponíveis
-        horarioDisponivelService.gerarESalvarHorarios(configuracao);
+        // Regenera os horários disponíveis para esta configuração
+        if (configuracao.getAtivo()) {
+            horarioDisponivelService.gerarHorariosParaConfiguracao(configuracao);
+        }
 
         return converterParaDTO(configuracao);
     }
 
     /**
-     * Verifica se uma configuração de agenda pode ser excluída
-     * @param id ID da configuração
-     * @return true se a configuração pode ser excluída, false caso contrário
+     * Verifica se uma configuração pode ser excluída
      */
     public boolean podeExcluir(Long id) {
         ConfiguracaoAgenda configuracao = configuracaoAgendaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Configuração de agenda não encontrada"));
-
-        // Obtém a data atual para o dia da semana da configuração
-        LocalDate dataAtual = LocalDate.now();
-        while (dataAtual.getDayOfWeek() != configuracao.getDiaSemana()) {
-            dataAtual = dataAtual.plusDays(1);
-        }
-
-        // Verifica se todos os horários estão disponíveis
-        return verificarDisponibilidadeHorarios(
-                configuracao.getPsicologo().getId(),
-                configuracao.getDiaSemana(),
-                dataAtual,
-                configuracao.getHorarioInicio(),
-                configuracao.getHorarioFim(),
-                configuracao.getInicioPausa(),
-                configuracao.getFimPausa(),
-                configuracao.getIntervaloMinutos()
-        );
+                .orElseThrow(() -> new RuntimeException("Configuração não encontrada"));
+        
+        return horarioDisponivelService.podeExcluirConfiguracao(configuracao);
     }
 
     /**
@@ -221,150 +113,58 @@ public class ConfiguracaoAgendaService {
      */
     @Transactional
     public void excluir(Long id) {
-        // Verifica se a configuração pode ser excluída
-        if (!podeExcluir(id)) {
-            throw new RuntimeException("Não é possível excluir a configuração porque existem horários indisponíveis");
-        }
-
-        // Busca a configuração
         ConfiguracaoAgenda configuracao = configuracaoAgendaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Configuração de agenda não encontrada"));
+                .orElseThrow(() -> new RuntimeException("Configuração não encontrada"));
+        
+        // Busca todos os horários desta configuração
+        List<HorarioDisponivel> horariosDisponiveis = horarioDisponivelService.buscarPorConfiguracao(configuracao);
+        
+        // Cancela todas as sessões que referenciam estes horários
+        if (!horariosDisponiveis.isEmpty()) {
+            sessaoService.cancelarSessoesPorConfiguracaoAgenda(horariosDisponiveis);
+        }
 
-        // Primeiro, exclui os horários disponíveis associados à configuração
+        // Remove todos os horários disponíveis desta configuração
         horarioDisponivelService.excluirPorConfiguracao(configuracao);
-
-        // Depois, exclui a configuração
-        configuracaoAgendaRepository.deleteById(id);
+        
+        // Remove a configuração
+        configuracaoAgendaRepository.delete(configuracao);
     }
 
     /**
-     * Gera os horários disponíveis para um psicólogo em um dia específico
-     * @deprecated Use {@link #gerarHorariosDisponiveisComDisponibilidade(Long, DayOfWeek, LocalDate)} instead
+     * Gera horários disponíveis com informação de disponibilidade
      */
-    @Deprecated
-    public List<LocalTime> gerarHorariosDisponiveis(Long psicologoId, DayOfWeek diaSemana) {
+    public List<Map<String, Object>> gerarHorariosDisponiveisComDisponibilidade(
+            Long psicologoId, DayOfWeek diaSemana, LocalDate data) {
+        
         Usuario psicologo = usuarioService.buscarPorId(psicologoId);
-
-        Optional<ConfiguracaoAgenda> configuracaoOpt =
-                configuracaoAgendaRepository.findByPsicologoAndDiaSemana(psicologo, diaSemana);
-
-        if (configuracaoOpt.isEmpty() || !configuracaoOpt.get().getAtivo()) {
-            return new ArrayList<>(); // Não há configuração ou está inativa
+        
+        var configuracao = configuracaoAgendaRepository
+                .findByPsicologoAndDiaSemanaAndAtivoTrue(psicologo, diaSemana);
+        
+        if (configuracao.isEmpty()) {
+            return new ArrayList<>();
         }
 
-        ConfiguracaoAgenda config = configuracaoOpt.get();
-        List<LocalTime> horarios = new ArrayList<>();
-
-        // Duração de cada atendimento: 50 minutos
-        int duracaoAtendimento = 50;
-
-        // Horário atual para iteração
-        LocalTime horarioAtual = config.getHorarioInicio();
-
-        // Gera os horários até o fim do expediente
-        while (horarioAtual.plusMinutes(duracaoAtendimento).isBefore(config.getHorarioFim()) ||
-               horarioAtual.plusMinutes(duracaoAtendimento).equals(config.getHorarioFim())) {
-
-            // Verifica se o horário está dentro do período de pausa
-            boolean estaNaPausa = false;
-            if (config.getInicioPausa() != null && config.getFimPausa() != null) {
-                estaNaPausa = !horarioAtual.isBefore(config.getInicioPausa()) &&
-                              horarioAtual.isBefore(config.getFimPausa());
-            }
-
-            // Adiciona o horário se não estiver na pausa
-            if (!estaNaPausa) {
-                horarios.add(horarioAtual);
-            }
-
-            // Avança para o próximo horário considerando o intervalo
-            horarioAtual = horarioAtual.plusMinutes(duracaoAtendimento + config.getIntervaloMinutos());
-        }
-
-        return horarios;
+        return horarioDisponivelService.buscarHorariosComDisponibilidade(
+                configuracao.get(), data);
     }
 
     /**
-     * Gera os horários disponíveis para um psicólogo em um dia específico, incluindo informações de disponibilidade
-     * @param psicologoId ID do psicólogo
-     * @param diaSemana Dia da semana
-     * @param data Data para verificar disponibilidade (se null, apenas gera os horários sem verificar disponibilidade)
-     * @return Lista de mapas com informações de cada horário
-     */
-    public List<Map<String, Object>> gerarHorariosDisponiveisComDisponibilidade(Long psicologoId, DayOfWeek diaSemana, LocalDate data) {
-        Usuario psicologo = usuarioService.buscarPorId(psicologoId);
-
-        Optional<ConfiguracaoAgenda> configuracaoOpt =
-                configuracaoAgendaRepository.findByPsicologoAndDiaSemana(psicologo, diaSemana);
-
-        if (configuracaoOpt.isEmpty() || !configuracaoOpt.get().getAtivo()) {
-            return new ArrayList<>(); // Não há configuração ou está inativa
-        }
-
-        ConfiguracaoAgenda config = configuracaoOpt.get();
-        List<Map<String, Object>> horariosInfo = new ArrayList<>();
-
-        // Duração de cada atendimento: 50 minutos
-        int duracaoAtendimento = 50;
-
-        // Horário atual para iteração
-        LocalTime horarioAtual = config.getHorarioInicio();
-
-        // Gera os horários até o fim do expediente
-        while (horarioAtual.plusMinutes(duracaoAtendimento).isBefore(config.getHorarioFim()) ||
-               horarioAtual.plusMinutes(duracaoAtendimento).equals(config.getHorarioFim())) {
-
-            // Verifica se o horário está dentro do período de pausa
-            boolean estaNaPausa = false;
-            if (config.getInicioPausa() != null && config.getFimPausa() != null) {
-                estaNaPausa = !horarioAtual.isBefore(config.getInicioPausa()) &&
-                              horarioAtual.isBefore(config.getFimPausa());
-            }
-
-            // Adiciona o horário se não estiver na pausa
-            if (!estaNaPausa) {
-                LocalTime horarioFim = horarioAtual.plusMinutes(duracaoAtendimento);
-
-                Map<String, Object> horarioInfo = new HashMap<>();
-                horarioInfo.put("inicio", horarioAtual);
-                horarioInfo.put("fim", horarioFim);
-
-                // Verifica disponibilidade se a data for fornecida
-                if (data != null) {
-                    System.out.println("Service: Verificando disponibilidade para " + data + " " + horarioAtual + "-" + horarioFim);
-                    boolean disponivel = agendamentoService.isHorarioDisponivel(
-                            psicologoId, data, horarioAtual, horarioFim);
-                    System.out.println("Service: Resultado da verificação: " + disponivel);
-                    horarioInfo.put("disponivel", disponivel);
-                } else {
-                    System.out.println("Service: Data não fornecida, assumindo disponível para " + horarioAtual + "-" + horarioFim);
-                    horarioInfo.put("disponivel", true); // Assume disponível se não verificar
-                }
-
-                horariosInfo.add(horarioInfo);
-            }
-
-            // Avança para o próximo horário considerando o intervalo
-            horarioAtual = horarioAtual.plusMinutes(duracaoAtendimento + config.getIntervaloMinutos());
-        }
-
-        return horariosInfo;
-    }
-
-    /**
-     * Converte uma entidade ConfiguracaoAgenda para DTO
+     * Converte entidade para DTO
      */
     private ConfiguracaoAgendaDTO converterParaDTO(ConfiguracaoAgenda configuracao) {
         ConfiguracaoAgendaDTO dto = new ConfiguracaoAgendaDTO();
         dto.setId(configuracao.getId());
         dto.setPsicologoId(configuracao.getPsicologo().getId());
         dto.setDiaSemana(configuracao.getDiaSemana());
-        dto.setAtivo(configuracao.getAtivo());
         dto.setHorarioInicio(configuracao.getHorarioInicio());
         dto.setIntervaloMinutos(configuracao.getIntervaloMinutos());
         dto.setHorarioFim(configuracao.getHorarioFim());
         dto.setInicioPausa(configuracao.getInicioPausa());
-        dto.setFimPausa(configuracao.getFimPausa());
+        dto.setVoltaPausa(configuracao.getVoltaPausa());
+        dto.setAtivo(configuracao.getAtivo());
+        dto.setDataCriacao(configuracao.getDataCriacao());
         dto.setDataAtualizacao(configuracao.getDataAtualizacao());
         return dto;
     }

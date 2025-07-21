@@ -1,5 +1,60 @@
+/* Variáveis SCSS padronizadas */
+$border-radius-sm: 6px;   /* Elementos pequenos */
+$border-radius-md: 8px;   /* Elementos médios */
+$border-radius-lg: 12px;  /* Elementos grandes */
+$border-radius-xl: 16px;  /* Elementos extra grandes */
+$border-radius-round: 50%; /* Elementos circulares */
+
+/* Variáveis padronizadas para botões */
+$btn-font-size: 14px;
+$btn-font-weight: 500;
+$btn-padding: 12px 20px;
+$btn-gap: 8px;
+$btn-icon-size: 14px;
+$btn-transition: all 0.3s ease;
+$btn-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+$btn-shadow-hover: 0 4px 12px rgba(139, 92, 246, 0.4);
+
+/* Mixin para botões padronizados */
+@mixin btn-base {
+  border: none;
+  border-radius: $border-radius-md;
+  padding: $btn-padding;
+  font-size: $btn-font-size;
+  font-weight: $btn-font-weight;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $btn-gap;
+  cursor: pointer;
+  transition: $btn-transition;
+  text-decoration: none;
+
+  i {
+    font-size: $btn-icon-size;
+  }
+}
+
+@mixin btn-primary {
+  @include btn-base;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  box-shadow: $btn-shadow;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $btn-shadow-hover;
+  }
+}
+
 form{
   display: flex;
   flex-direction: column;
   gap: 36px;
+
+  /* Botão principal padronizado */
+  .btn.btn-primary {
+    @include btn-primary;
+    width: 100%;
+  }
 }

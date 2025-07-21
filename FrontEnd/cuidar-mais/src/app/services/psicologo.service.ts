@@ -29,8 +29,6 @@ export class PsicologoService {
       'Authorization': `Bearer ${token}`
     });
 
-    console.log('Token being used for getting psicologo data:', token);
-
     return this.http.get<PsicologoDTO>(this.apiUrl, { headers });
   }
 
@@ -40,8 +38,6 @@ export class PsicologoService {
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });
-
-    console.log('Token being used for upload:', token);
 
     return this.http.post(`http://localhost:8080/psicologo/${usuarioId}/imagem-base64`, {
       imagem: imagemBase64
@@ -53,8 +49,6 @@ export class PsicologoService {
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });
-
-    console.log('Token being used for image retrieval:', token);
 
     return this.http.get(`http://localhost:8080/psicologo/${usuarioId}/imagem`, { headers });
   }

@@ -29,7 +29,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4201", "http://localhost:3000"})
 public class AutenticacaoController {
     private static final Logger logger = LoggerFactory.getLogger(AutenticacaoController.class);
 

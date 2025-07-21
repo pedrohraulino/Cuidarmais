@@ -1,206 +1,436 @@
-<app-cabecalho></app-cabecalho>
+<main class="main-container">
+  <app-cabecalho></app-cabecalho>
 
-<div class="container mt-4">
-  <div class="row">
-    <!-- Formulário de cadastro -->
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-header bg-primary text-white">
-          <h4 class="mb-0">Cadastro de Paciente</h4>
-        </div>
-        <div class="card-body">
-          <form (ngSubmit)="cadastrarPaciente()" #form="ngForm">
-            <!-- Mensagens de erro locais (mensagens de sucesso são exibidas na lista de pacientes) -->
-            <div *ngIf="erro" class="alert alert-danger">
-              {{ erro }}
+  <div class="container-page">
+    <form
+      (ngSubmit)="cadastrarPaciente()"
+      #form="ngForm"
+      class="cadastro-form"
+      role="form"
+      [attr.aria-label]="
+        modoEdicao
+          ? 'Formulário de edição de paciente'
+          : 'Formulário de cadastro de paciente'
+      "
+    >
+      <!-- Container de conteúdo scrollável -->
+      <div class="form-content">
+        <!-- Seção: Dados Pessoais -->
+        <fieldset class="form-section">
+          <div
+            *ngIf="erro"
+            class="alert alert-error"
+            role="alert"
+            aria-live="polite"
+          >
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+            {{ erro }}
+            <button
+              type="button"
+              class="alert-close"
+              (click)="erro = ''"
+              aria-label="Fechar mensagem de erro"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <legend class="section-legend">
+            <div class="section-icon" aria-hidden="true">
+              <i class="fas fa-user"></i>
             </div>
+            <h2 class="section-title">Dados pessoais</h2>
+          </legend>
 
-            <!-- Dados do Paciente -->
-            <h5 class="mb-3">Dados Pessoais</h5>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="nome">Nome</label>
-                  <input
-                    type="text"
-                    id="nome"
-                    name="nome"
-                    [(ngModel)]="nome"
-                    class="form-control"
-                    required
-                    placeholder="Nome do paciente"
-                  />
+          <!-- Upload de Foto -->
+          <div class="photo-upload-section">
+            <label class="photo-label" for="fileInput">Foto do Paciente</label>
+            <div class="photo-upload-container">
+              <figure
+                class="photo-preview"
+                *ngIf="imagemPreview; else noPhotoTemplate"
+              >
+                <img [src]="imagemPreview" alt="Preview da foto do paciente" />
+              </figure>
+              <ng-template #noPhotoTemplate>
+                <div
+                  class="photo-placeholder"
+                  role="img"
+                  aria-label="Nenhuma foto selecionada"
+                >
+                  <i class="fas fa-image" aria-hidden="true"></i>
                 </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="sobrenome">Sobrenome</label>
-                  <input
-                    type="text"
-                    id="sobrenome"
-                    name="sobrenome"
-                    [(ngModel)]="sobrenome"
-                    class="form-control"
-                    required
-                    placeholder="Sobrenome do paciente"
-                  />
-                </div>
-              </div>
-            </div>
+              </ng-template>
 
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="sexo">Sexo</label>
-                  <select
-                    id="sexo"
-                    name="sexo"
-                    [(ngModel)]="sexo"
-                    class="form-control"
-                    required
+              <div class="upload-info">
+                <p class="upload-instruction">Por favor, escolha um arquivo</p>
+                <div class="file-input-wrapper">
+                  <button
+                    type="button"
+                    class="btn-select-file"
+                    (click)="fileInput.click()"
+                    aria-describedby="file-status"
                   >
-                    <option value="">Selecione</option>
-                    <option value="MASCULINO">Masculino</option>
-                    <option value="FEMININO">Feminino</option>
-                    <option value="OUTRO">Outro</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="dataNascimento">Data de Nascimento</label>
+                    <i class="fas fa-user" aria-hidden="true"></i>
+                    Selecionar Arquivo
+                  </button>
+                  <span class="file-status" id="file-status">
+                    {{
+                      imagemSelecionada
+                        ? imagemSelecionada.name
+                        : "Nenhum arquivo selecionado"
+                    }}
+                  </span>
                   <input
-                    type="date"
-                    id="dataNascimento"
-                    name="dataNascimento"
-                    [(ngModel)]="dataNascimento"
-                    class="form-control"
-                    required
+                    #fileInput
+                    type="file"
+                    accept="image/*"
+                    style="display: none"
+                    (change)="onImagemSelecionada($event)"
+                    id="fileInput"
+                    aria-label="Selecionar arquivo de imagem para foto do paciente"
                   />
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="email">Email</label>
+          <!-- Campos Nome e Contato -->
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nome">
+                Nome
+                <abbr
+                  title="Campo obrigatório"
+                  class="required"
+                  aria-label="obrigatório"
+                  >*</abbr
+                >
+              </label>
+              <div class="input-wrapper">
+                <i class="fas fa-user input-icon" aria-hidden="true"></i>
+                <input
+                  type="text"
+                  id="nome"
+                  name="nome"
+                  [(ngModel)]="nome"
+                  class="form-input"
+                  placeholder="Nome do paciente"
+                  required
+                  aria-describedby="nome-help"
+                />
+                <div id="nome-help" class="sr-only">
+                  Digite o nome do paciente
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="sobrenome">
+                Sobrenome
+                <abbr
+                  title="Campo obrigatório"
+                  class="required"
+                  aria-label="obrigatório"
+                  >*</abbr
+                >
+              </label>
+              <div class="input-wrapper">
+                <i class="fas fa-user input-icon" aria-hidden="true"></i>
+                <input
+                  type="text"
+                  id="sobrenome"
+                  name="sobrenome"
+                  [(ngModel)]="sobrenome"
+                  class="form-input"
+                  placeholder="Sobrenome do paciente"
+                  required
+                  aria-describedby="sobrenome-help"
+                />
+                <div id="sobrenome-help" class="sr-only">
+                  Digite o sobrenome do paciente
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="sexo">
+                Sexo
+                <abbr
+                  title="Campo obrigatório"
+                  class="required"
+                  aria-label="obrigatório"
+                  >*</abbr
+                >
+              </label>
+              <div class="select-wrapper">
+                <i
+                  class="fas fa-chevron-down select-icon"
+                  aria-hidden="true"
+                ></i>
+                <select
+                  id="sexo"
+                  name="sexo"
+                  [(ngModel)]="sexo"
+                  class="form-select"
+                  required
+                  aria-describedby="sexo-help"
+                >
+                  <option value="">Selecione o sexo</option>
+                  <option value="MASCULINO">Masculino</option>
+                  <option value="FEMININO">Feminino</option>
+                  <option value="OUTRO">Outro</option>
+                </select>
+                <div id="sexo-help" class="sr-only">
+                  Selecione o sexo biológico do paciente
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="dataNascimento">
+                Data de Nascimento
+                <abbr
+                  title="Campo obrigatório"
+                  class="required"
+                  aria-label="obrigatório"
+                  >*</abbr
+                >
+              </label>
+              <div class="input-wrapper">
+                <i class="fas fa-calendar input-icon" aria-hidden="true"></i>
+                <input
+                  type="date"
+                  id="dataNascimento"
+                  name="dataNascimento"
+                  [(ngModel)]="dataNascimento"
+                  class="form-input"
+                  required
+                  aria-describedby="data-nascimento-help"
+                />
+                <div id="data-nascimento-help" class="sr-only">
+                  Selecione a data de nascimento do paciente
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Seção Contato -->
+          <div class="subsection">
+            <h3 class="subsection-title">Contato</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="email">
+                  e-mail
+                  <abbr
+                    title="Campo obrigatório"
+                    class="required"
+                    aria-label="obrigatório"
+                    >*</abbr
+                  >
+                </label>
+                <div class="input-wrapper">
+                  <i class="fas fa-envelope input-icon" aria-hidden="true"></i>
                   <input
                     type="email"
                     id="email"
                     name="email"
                     [(ngModel)]="email"
-                    class="form-control"
-                    placeholder="Email do paciente"
+                    class="form-input"
+                    placeholder="email@email.com"
+                    aria-describedby="email-help"
                   />
+                  <div id="email-help" class="sr-only">
+                    Digite o endereço de email do paciente
+                  </div>
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="telefone">Telefone</label>
+
+              <div class="form-group">
+                <label for="telefone">Telefone</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-phone input-icon" aria-hidden="true"></i>
                   <input
                     type="tel"
                     id="telefone"
                     name="telefone"
                     [(ngModel)]="telefone"
-                    class="form-control"
-                    placeholder="Telefone do paciente"
+                    class="form-input"
+                    placeholder="(84) 44444-4444"
+                    aria-describedby="telefone-help"
                   />
+                  <div id="telefone-help" class="sr-only">
+                    Digite o número de telefone do paciente
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Seção: Dados consulta -->
+        <fieldset class="form-section">
+          <legend class="section-legend">
+            <h2 class="section-title">Dados consulta</h2>
+          </legend>
+
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="diaSemana">
+                Dia da Semana
+                <abbr
+                  title="Campo obrigatório"
+                  class="required"
+                  aria-label="obrigatório"
+                  >*</abbr
+                >
+              </label>
+              <div class="select-wrapper">
+                <i
+                  class="fas fa-chevron-down select-icon"
+                  aria-hidden="true"
+                ></i>
+                <select
+                  id="diaSemana"
+                  name="diaSemana"
+                  [(ngModel)]="diaSemana"
+                  (change)="onDiaSemanaChange()"
+                  class="form-select"
+                  required
+                  aria-describedby="dia-semana-help"
+                >
+                  <option value="">Selecione o dia</option>
+                  <option *ngFor="let dia of diasSemana" [value]="dia.valor">
+                    {{ dia.nome }}
+                  </option>
+                </select>
+                <div id="dia-semana-help" class="sr-only">
+                  Selecione o dia da semana para as consultas
                 </div>
               </div>
             </div>
 
-            <div class="row mb-3">
-              <div class="col-md-12">
-                <div class="form-group">
-                  <label for="imagem">Foto do Paciente</label>
-                  <input
-                    type="file"
-                    id="imagem"
-                    name="imagem"
-                    class="form-control"
-                    accept="image/*"
-                    (change)="onImagemSelecionada($event)"
-                  />
-                  <small class="text-muted">Opcional. Formatos aceitos: JPG, PNG, GIF.</small>
+            <div class="form-group">
+              <label for="horarioId">
+                Horário do Atendimento
+                <abbr
+                  title="Campo obrigatório"
+                  class="required"
+                  aria-label="obrigatório"
+                  >*</abbr
+                >
+              </label>
+              <div class="select-wrapper">
+                <i
+                  class="fas fa-chevron-down select-icon"
+                  aria-hidden="true"
+                ></i>
+                <select
+                  id="horarioId"
+                  name="horarioId"
+                  [(ngModel)]="horarioId"
+                  class="form-select"
+                  required
+                  [disabled]="
+                    (!diaSemana || horarios.length === 0) && !modoEdicao
+                  "
+                  aria-describedby="horario-help"
+                >
+                  <option value="">Selecione o horário</option>
+                  <option *ngFor="let horario of horarios" [value]="horario.id">
+                    {{ horario.horario }}
+                  </option>
+                </select>
+                <div id="horario-help" class="sr-only">
+                  Selecione o horário para as consultas
                 </div>
               </div>
             </div>
 
-            <!-- Dados do Agendamento -->
-            <h5 class="mb-3 mt-4">Dados do Agendamento</h5>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="diaSemana">Dia de Atendimento</label>
-                  <select
-                    id="diaSemana"
-                    name="diaSemana"
-                    [(ngModel)]="diaSemana"
-                    (change)="onDiaSemanaChange()"
-                    class="form-control"
-                    required
-                  >
-                    <option value="">Selecione</option>
-                    <option *ngFor="let dia of diasSemana" [value]="dia.valor">{{ dia.nome }}</option>
-                  </select>
-                  <small *ngIf="modoEdicao" class="text-warning">
-                    <strong>Atenção:</strong> Alterar o dia de atendimento transferirá todas as sessões agendadas para o novo dia.
-                  </small>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="horarioId">Horário</label>
-                  <select
-                    id="horarioId"
-                    name="horarioId"
-                    [(ngModel)]="horarioId"
-                    class="form-control"
-                    required
-                    [disabled]="(!diaSemana || horarios.length === 0) && !modoEdicao"
-                  >
-                    <option value="">Selecione</option>
-                    <option *ngFor="let horario of horarios" [value]="horario.id">{{ horario.horario }}</option>
-                  </select>
-                  <small *ngIf="diaSemana && horarios.length === 0" class="text-muted">
-                    Não há horários disponíveis para este dia.
-                  </small>
-                  <small *ngIf="modoEdicao" class="text-warning">
-                    <strong>Atenção:</strong> Alterar o horário transferirá todas as sessões agendadas para o novo horário.
-                  </small>
+            <div class="form-group">
+              <label for="sessoesPorPacote">
+                Sessões por Pacote
+                <abbr
+                  title="Campo obrigatório"
+                  class="required"
+                  aria-label="obrigatório"
+                  >*</abbr
+                >
+              </label>
+              <div class="input-wrapper">
+                <i class="fas fa-hashtag input-icon" aria-hidden="true"></i>
+                <input
+                  type="number"
+                  id="sessoesPorPacote"
+                  name="sessoesPorPacote"
+                  [(ngModel)]="sessoesPorPacote"
+                  class="form-input"
+                  placeholder="Digite o número de sessões"
+                  min="1"
+                  max="50"
+                  required
+                  aria-describedby="sessoes-help"
+                />
+                <div id="sessoes-help" class="sr-only">
+                  Digite o número total de sessões do pacote (mínimo 1, máximo
+                  50)
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="totalSessoes">Total de Sessões</label>
-                  <input
-                    type="number"
-                    id="totalSessoes"
-                    name="totalSessoes"
-                    [(ngModel)]="totalSessoes"
-                    class="form-control"
-                    required
-                    min="1"
-                  />
-                  <small class="text-muted">
-                    Número de sessões semanais a serem agendadas.
-                  </small>
-                </div>
-              </div>
+          <!-- Avisos para modo edição -->
+          <aside
+            *ngIf="modoEdicao"
+            class="warning-messages"
+            role="region"
+            aria-labelledby="warnings-title"
+          >
+            <h3 id="warnings-title" class="sr-only">
+              Avisos importantes sobre edição
+            </h3>
+            <div class="warning-item" role="alert">
+              <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+              <span
+                ><strong>Atenção:</strong> Alterar o dia de atendimento
+                transferirá todas as sessões agendadas para o novo dia.</span
+              >
             </div>
+            <div class="warning-item" role="alert">
+              <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+              <span
+                ><strong>Atenção:</strong> Alterar o horário transferirá todas
+                as sessões agendadas para o novo horário.</span
+              >
+            </div>
+          </aside>
+        </fieldset>
 
-            <!-- Botões -->
-            <div class="form-group mt-4">
-              <button type="submit" class="btn btn-primary">Cadastrar Paciente</button>
-              <button type="button" class="btn btn-secondary ms-2" (click)="voltarParaListaPacientes()">Voltar</button>
-            </div>
-          </form>
-        </div>
+        <!-- Botões de Ação -->
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="btn-cancel"
+            (click)="voltarParaListaPacientes()"
+            aria-label="Cancelar e voltar para lista de pacientes"
+          >
+            <i class="fas fa-times" aria-hidden="true"></i>
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-submit"
+            [attr.aria-label]="
+              modoEdicao
+                ? 'Atualizar dados do paciente'
+                : 'Cadastrar novo paciente'
+            "
+          >
+            <i class="fas fa-star" aria-hidden="true"></i>
+            {{ modoEdicao ? "Atualizar" : "Cadastrar" }}
+          </button>
+        </footer>
       </div>
-    </div>
+      <!-- Fim do container de conteúdo scrollável -->
+    </form>
   </div>
-</div>
+</main>

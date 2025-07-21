@@ -21,7 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/configuracao-agenda")
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4201", "http://localhost:3000"})
 public class ConfiguracaoAgendaController {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfiguracaoAgendaController.class);
@@ -281,7 +281,7 @@ public class ConfiguracaoAgendaController {
                 dto.setHorarioInicio(horarioInicio);
                 dto.setHorarioFim(horarioFim);
                 dto.setInicioPausa(inicioPausa);
-                dto.setFimPausa(fimPausa);
+                dto.setVoltaPausa(fimPausa);
                 dto.setIntervaloMinutos(intervaloMinutos);
 
                 configuracaoAgendaService.salvar(dto);

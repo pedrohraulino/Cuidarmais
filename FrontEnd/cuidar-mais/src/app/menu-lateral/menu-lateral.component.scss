@@ -1,3 +1,51 @@
+/* Variáveis SCSS padronizadas */
+$border-radius-sm: 6px;   /* Elementos pequenos */
+$border-radius-md: 8px;   /* Elementos médios */
+$border-radius-lg: 12px;  /* Elementos grandes */
+$border-radius-xl: 16px;  /* Elementos extra grandes */
+$border-radius-round: 50%; /* Elementos circulares */
+
+/* Variáveis padronizadas para botões */
+$btn-font-size: 14px;
+$btn-font-weight: 500;
+$btn-padding: 12px 20px;
+$btn-gap: 8px;
+$btn-icon-size: 14px;
+$btn-transition: all 0.3s ease;
+$btn-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+$btn-shadow-hover: 0 4px 12px rgba(139, 92, 246, 0.4);
+
+/* Mixin para botões padronizados */
+@mixin btn-base {
+  border: none;
+  border-radius: $border-radius-md;
+  padding: $btn-padding;
+  font-size: $btn-font-size;
+  font-weight: $btn-font-weight;
+  display: flex;
+  align-items: center;
+  gap: $btn-gap;
+  cursor: pointer;
+  transition: $btn-transition;
+  text-decoration: none;
+
+  i {
+    font-size: $btn-icon-size;
+  }
+}
+
+@mixin btn-secondary {
+  @include btn-base;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+
+  &:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+  }
+}
+
 .container {
   &-img {
     background-color: #6554c0;
@@ -13,6 +61,20 @@
     padding: 24px;
     height: 100%;
     box-sizing: border-box;
+
+    /* Botão de logout padronizado */
+    button {
+      @include btn-secondary;
+      justify-content: flex-start;
+      width: 100%;
+      margin-top: 24px;
+
+      &:hover {
+        background: #dc2626;
+        color: white;
+        transform: translateY(-1px);
+      }
+    }
   }
 }
 
@@ -42,9 +104,9 @@ ul {
   li {
     display: flex;
     align-items: center;
-    gap: px;
+    gap: 12px;
     padding: 4px 12px;
-    border-radius: 8px;
+    border-radius: $border-radius-md;
     cursor: pointer;
     transition: ease-in-out all 0.3s;
 

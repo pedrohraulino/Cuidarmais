@@ -1,108 +1,307 @@
-<app-cabecalho></app-cabecalho>
+<main class="main-container">
+  <app-cabecalho></app-cabecalho>
 
-<div class="container mt-4">
-  <div class="row">
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-header bg-primary text-white">
-          <h4 class="mb-0">Pacientes Cadastrados</h4>
+  <div class="container-page">
+    <!-- Barra de busca -->
+    <header class="search-container" role="search">
+      <div class="search-box">
+        <label class="sr-only" for="search-input">Buscar paciente</label>
+        <i class="fas fa-search search-icon" aria-hidden="true"></i>
+        <input
+          type="search"
+          id="search-input"
+          class="search-input"
+          placeholder="Busque por um paciente"
+          [(ngModel)]="termoBusca"
+          (keyup.enter)="buscarPacientes()"
+          aria-label="Campo de busca de pacientes"
+        />
+      </div>
+      <button
+        type="button"
+        class="btn-buscar"
+        (click)="buscarPacientes()"
+        aria-label="Executar busca"
+      >
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <span class="sr-only">Buscar</span>
+        Buscar
+      </button>
+    </header>
+
+    <!-- Mensagens de feedback -->
+    <div
+      *ngIf="erro"
+      class="alert alert-danger"
+      role="alert"
+      aria-live="polite"
+    >
+      {{ erro }}
+      <button
+        type="button"
+        class="alert-close"
+        (click)="erro = ''"
+        aria-label="Fechar mensagem de erro"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+    <div
+      *ngIf="sucesso"
+      class="alert alert-success"
+      role="alert"
+      aria-live="polite"
+    >
+      {{ sucesso }}
+      <button
+        type="button"
+        class="alert-close"
+        (click)="sucesso = ''"
+        aria-label="Fechar mensagem de sucesso"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+
+    <!-- Tabela de pacientes -->
+    <section [class]="pacientesFiltrados.length > 0 ? 'patients-table-container' : 'empty-table-container'">
+      <header class="patients-table-header">
+        <div>
+          <h1 class="table-title">Pacientes</h1>
+          <nav class="filter-container" aria-label="Filtros de pacientes">
+            <label class="sr-only" for="status-filter"
+              >Filtrar por status</label
+            >
+            <select
+              id="status-filter"
+              class="status-filter"
+              [(ngModel)]="statusFiltro"
+              (change)="aplicarFiltros()"
+              aria-label="Filtrar pacientes por status"
+            >
+              <option value="ativos">Pacientes Ativos</option>
+              <option value="inativos">Pacientes Inativos</option>
+              <option value="todos">Todos os Pacientes</option>
+            </select>
+          </nav>
         </div>
-        <div class="card-body">
-          <!-- Mensagens de erro e sucesso -->
-          <div *ngIf="erro" class="alert alert-danger">
-            {{ erro }}
-          </div>
-          <div *ngIf="sucesso" class="alert alert-success">
-            {{ sucesso }}
-          </div>
+        <button
+          type="button"
+          class="btn-novo-paciente"
+          (click)="navegarParaCadastro()"
+          aria-label="Cadastrar novo paciente"
+        >
+          <i class="fas fa-plus" aria-hidden="true"></i>
+          Novo Paciente
+        </button>
+      </header>
 
-          <!-- Filtros e botão de cadastro -->
-          <div class="row mb-3">
-            <div class="col-md-4">
-              <div class="input-group">
-                <input
-                  type="text"
-                  class="form-control"
-                  placeholder="Buscar paciente..."
-                  [(ngModel)]="termoBusca"
-                  aria-label="Buscar paciente"
-                >
-              </div>
-            </div>
-            <div class="col-md-3">
-              <select class="form-select" [(ngModel)]="statusFiltro">
-                <option value="ativos">Pacientes Ativos</option>
-                <option value="inativos">Pacientes Inativos</option>
-                <option value="todos">Todos os Pacientes</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <button class="btn btn-primary w-100" (click)="buscarPacientes()">Buscar</button>
-            </div>
-            <div class="col-md-3 text-end">
-              <button class="btn btn-success w-100" (click)="navegarParaCadastro()">Cadastrar Paciente</button>
-            </div>
-          </div>
+      <div class="patients-table" role="table" aria-label="Lista de pacientes" *ngIf="pacientesFiltrados.length > 0">
+        <header class="table-header" role="row">
+          <div class="col-name" role="columnheader">Nome</div>
+          <div class="col-status" role="columnheader">Status</div>
+          <div class="col-sessions" role="columnheader">Sessões Restantes</div>
+          <div class="col-contact" role="columnheader">Contato</div>
+          <div class="col-actions" role="columnheader">Ações</div>
+        </header>
 
-          <div class="list-group">
-            <div *ngFor="let paciente of pacientesFiltrados" class="list-group-item">
-              <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">
-                  {{ paciente.nome }} {{ paciente.sobrenome }}
-                  <span class="badge bg-success ms-2" *ngIf="paciente.ativo !== false">Ativo</span>
-                  <span class="badge bg-danger ms-2" *ngIf="paciente.ativo === false">Inativo</span>
-                </h5>
-                <div class="btn-group">
-                  <button class="btn btn-sm btn-primary" (click)="editarPaciente(paciente.id)">Editar</button>
-                  <button class="btn btn-sm btn-success ms-1" (click)="criarSessoesAdicionais(paciente.id)" *ngIf="paciente.ativo !== false">Atualizar Sessões</button>
-                  <button class="btn btn-sm btn-danger ms-1" (click)="inativarPaciente(paciente.id)" *ngIf="paciente.ativo !== false">Inativar</button>
-                  <button class="btn btn-sm btn-success ms-1" (click)="reativarPaciente(paciente.id)" *ngIf="paciente.ativo === false">Reativar</button>
+        <div class="table-body" role="rowgroup">
+          <article
+            class="patient-row"
+            *ngFor="
+              let paciente of pacientesFiltrados;
+              trackBy: trackByPatientId
+            "
+            role="row"
+            [attr.aria-label]="
+              'Paciente: ' + paciente.nome + ' ' + paciente.sobrenome
+            "
+          >
+            <!-- Nome com avatar -->
+            <div class="col-name" role="cell">
+              <div class="patient-info">
+                <figure class="patient-avatar">
+                  <img
+                    *ngIf="paciente.imagemBase64"
+                    [src]="
+                      'data:' +
+                      paciente.imagemTipo +
+                      ';base64,' +
+                      paciente.imagemBase64
+                    "
+                    [alt]="
+                      'Foto de ' + paciente.nome + ' ' + paciente.sobrenome
+                    "
+                  />
+                  <div
+                    *ngIf="!paciente.imagemBase64"
+                    class="avatar-placeholder"
+                    [attr.aria-label]="
+                      'Avatar com iniciais de ' +
+                      paciente.nome +
+                      ' ' +
+                      paciente.sobrenome
+                    "
+                  >
+                    {{ getInitials(paciente.nome, paciente.sobrenome) }}
+                  </div>
+                </figure>
+                <div class="patient-details">
+                  <h2 class="patient-name">
+                    {{ paciente.nome }} {{ paciente.sobrenome }}
+                    <span class="patient-age"
+                      >({{ calcularIdade(paciente.dataNascimento) }} anos)</span
+                    >
+                  </h2>
+                  <p class="patient-meta">
+                    <time [attr.datetime]="paciente.dataNascimento">
+                      {{ formatarDataNascimento(paciente.dataNascimento) }}
+                    </time>
+                    <span aria-hidden="true"> • </span>
+                    <span>{{ paciente.sexo }}</span>
+                  </p>
                 </div>
               </div>
-
-              <!-- Imagem do paciente -->
-              <div *ngIf="paciente.imagemBase64 && paciente.imagemTipo" class="mb-2">
-                <img [src]="'data:' + paciente.imagemTipo + ';base64,' + paciente.imagemBase64"
-                     alt="Foto do paciente"
-                     class="img-thumbnail"
-                     style="max-width: 100px; max-height: 100px;">
-              </div>
-
-              <p class="mb-1">Sexo: {{ paciente.sexo }}</p>
-              <p class="mb-1">Data de Nascimento: {{ paciente.dataNascimento | date:'dd/MM/yyyy' }}</p>
-
-              <!-- Contato do paciente -->
-              <div *ngIf="paciente.email || paciente.telefone" class="mb-2">
-                <p *ngIf="paciente.email" class="mb-1">Email: {{ paciente.email }}</p>
-                <p *ngIf="paciente.telefone" class="mb-1">Telefone: {{ paciente.telefone }}</p>
-              </div>
-
-              <!-- Agendamentos do paciente -->
-              <div *ngIf="paciente.agendamentos && paciente.agendamentos.length > 0">
-                <p class="mb-1"><strong>Próximos agendamentos:</strong></p>
-                <ul class="list-unstyled">
-                  <li *ngFor="let agendamento of paciente.agendamentos | slice:0:3">
-                    <small>
-                      {{ obterNomeDiaSemana(agendamento.data) }} -
-                      {{ agendamento.data | date:'dd/MM/yyyy' }} -
-                      {{ formatarHora(agendamento.horaInicio) }} às {{ formatarHora(agendamento.horaFim) }}
-                    </small>
-                  </li>
-                </ul>
-                <small *ngIf="paciente.agendamentos.length > 3" class="text-muted">
-                  E mais {{ paciente.agendamentos.length - 3 }} agendamentos...
-                </small>
-              </div>
-              <div *ngIf="!paciente.agendamentos || paciente.agendamentos.length === 0">
-                <p class="mb-1 text-muted"><small>Sem agendamentos ativos</small></p>
-              </div>
             </div>
-            <div *ngIf="pacientesFiltrados.length === 0" class="list-group-item text-center">
-              Nenhum paciente encontrado
+
+            <!-- Status -->
+            <div class="col-status" role="cell">
+              <span
+                class="patient-status"
+                [class.active]="paciente.ativo === true"
+                [class.inactive]="paciente.ativo === false"
+                [attr.aria-label]="
+                  'Status: ' + (paciente.ativo === true ? 'Ativo' : 'Inativo')
+                "
+              >
+                {{ paciente.ativo === true ? "Ativo" : "Inativo" }}
+              </span>
             </div>
-          </div>
+
+            <!-- Sessões Restantes -->
+            <div class="col-sessions" role="cell">
+              <data
+                class="sessions-count"
+                [attr.value]="calcularSessoesRestantes(paciente)"
+                [attr.aria-label]="
+                  calcularSessoesRestantes(paciente) + ' sessões restantes'
+                "
+              >
+                {{ calcularSessoesRestantes(paciente) }}
+              </data>
+              <p class="patient-schedule">{{ obterDiaEHorario(paciente) }}</p>
+            </div>
+
+            <!-- Contato -->
+            <div class="col-contact" role="cell">
+              <address class="contact-info">
+                <div class="contact-item">
+                  <span class="sr-only">Telefone: </span>
+                  {{ paciente.telefone || "Não informado" }}
+                </div>
+                <div class="contact-item email">
+                  <span class="sr-only">Email: </span>
+                  {{ paciente.email || "Não informado" }}
+                </div>
+              </address>
+            </div>
+
+            <!-- Ações -->
+            <div class="col-actions" role="cell">
+              <nav class="action-buttons" aria-label="Ações do paciente">
+                <button
+                  type="button"
+                  class="action-btn view-btn"
+                  (click)="editarPaciente(paciente.id)"
+                  [attr.aria-label]="
+                    'Editar dados de ' + paciente.nome
+                  "
+                >
+                  <i class="fas fa-user-edit" aria-hidden="true"></i>
+                  <span class="sr-only">Editar</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="action-btn edit-btn"
+                  (click)="criarSessoesAdicionais(paciente.id)"
+                  *ngIf="paciente.ativo === true"
+                  [attr.aria-label]="'Agendar sessões para ' + paciente.nome"
+                >
+                  <i class="fas fa-calendar-plus" aria-hidden="true"></i>
+                  <span class="sr-only">Agendar sessões</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="action-btn delete-btn"
+                  (click)="inativarPaciente(paciente.id)"
+                  *ngIf="paciente.ativo === true"
+                  [attr.aria-label]="'Inativar paciente ' + paciente.nome"
+                >
+                  <i class="fas fa-user-times" aria-hidden="true"></i>
+                  <span class="sr-only">Inativar</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="action-btn reactivate-btn"
+                  (click)="reativarPaciente(paciente.id)"
+                  *ngIf="paciente.ativo === false"
+                  [attr.aria-label]="'Reativar paciente ' + paciente.nome"
+                >
+                  <i class="fas fa-check" aria-hidden="true"></i>
+                  <span class="sr-only">Reativar</span>
+                </button>
+              </nav>
+            </div>
+          </article>
         </div>
       </div>
-    </div>
+    </section>
+
+    <!-- Mensagem quando não há pacientes -->
+    <section
+      *ngIf="pacientesFiltrados.length === 0 && !erro"
+      class="empty-state"
+      role="status"
+      aria-live="polite"
+    >
+      <i class="fas fa-user-friends empty-icon" aria-hidden="true"></i>
+      <h3 class="empty-title">
+        {{ termoBusca || statusFiltro !== 'ativos' ? 'Nenhum paciente encontrado' : 'Nenhum paciente cadastrado' }}
+      </h3>
+      <p class="empty-text">
+        {{
+          termoBusca
+            ? "Tente ajustar os filtros de busca ou limpar o termo de busca"
+            : statusFiltro === 'inativos'
+            ? "Não há pacientes inativos no momento"
+            : statusFiltro === 'todos'
+            ? "Cadastre o primeiro paciente para começar"
+            : "Cadastre o primeiro paciente para começar"
+        }}
+      </p>
+      <button
+        *ngIf="!termoBusca && (statusFiltro === 'ativos' || statusFiltro === 'todos')"
+        type="button"
+        class="btn-novo-paciente"
+        (click)="navegarParaCadastro()"
+        aria-label="Cadastrar primeiro paciente"
+      >
+        <i class="fas fa-plus" aria-hidden="true"></i>
+        Cadastrar Primeiro Paciente
+      </button>
+      <button
+        *ngIf="termoBusca"
+        type="button"
+        class="btn-limpar-busca"
+        (click)="limparBusca()"
+        aria-label="Limpar busca"
+      >
+        <i class="fas fa-times" aria-hidden="true"></i>
+        Limpar Busca
+      </button>
+    </section>
   </div>
-</div>
+</main>
