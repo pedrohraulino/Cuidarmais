@@ -92,11 +92,6 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
     boolean existsAgendamentoConflitante(Usuario psicologo, LocalDate data, LocalTime horaInicio, LocalTime horaFim);
 
     /**
-     * Busca todos os agendamentos que referenciam um horário disponível específico
-     */
-    List<Agendamento> findByHorarioDisponivel(HorarioDisponivel horarioDisponivel);
-
-    /**
      * Busca todos os agendamentos para um psicólogo em uma data e intervalo de horário específicos
      * que possam conflitar com um novo agendamento
      */

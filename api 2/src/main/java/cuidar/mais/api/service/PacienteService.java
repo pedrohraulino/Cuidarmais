@@ -116,9 +116,6 @@ public class PacienteService {
         // Verifica se o horário mudou
         boolean horarioMudou = !java.util.Objects.equals(horarioAnterior, paciente.getHorarioDisponivelId());
 
-        // Verifica se o número de sessões por pacote mudou
-        boolean sessoesPorPacoteMudou = !java.util.Objects.equals(sessoesPorPacoteAnterior, paciente.getSessoesPorPacote());
-
         if (horarioMudou) {
             // Desvincula do horário anterior
             if (horarioAnterior != null) {
@@ -132,10 +129,10 @@ public class PacienteService {
             if (paciente.getHorarioDisponivelId() != null) {
                 vincularHorarioECriarSessoes(paciente);
             }
-        } else if (sessoesPorPacoteMudou && paciente.temHorarioDefinido()) {
-            // Se apenas o número de sessões mudou, recria sessões
-            sessaoService.cancelarSessoesFuturas(paciente);
-            sessaoService.criarSessoesParaPaciente(paciente);
+        } else if (paciente.temHorarioDefinido()) {
+            // Sempre ajusta sessões quando o paciente tem horário definido
+            // Isso garante que sessões sejam criadas mesmo quando apenas outros campos foram editados
+            ajustarSessoesParaPaciente(paciente, sessoesPorPacoteAnterior);
         }
 
         return converterParaDTO(paciente);
@@ -159,8 +156,8 @@ public class PacienteService {
         
         pacienteRepository.save(paciente);
 
-        // Cancela todas as sessões futuras
-        sessaoService.cancelarSessoesFuturas(paciente);
+        // Apaga todas as sessões do paciente (realizadas e não realizadas)
+        sessaoService.apagarTodasSessoesPaciente(paciente);
     }
 
     /**
@@ -259,6 +256,27 @@ public class PacienteService {
         
         // Cria as sessões adicionais
         sessaoService.criarSessoesParaPaciente(paciente);
+    }
+
+    /**
+     * Adiciona sessões extras ao pacote do paciente
+     * Cria apenas as sessões adicionais sem modificar o valor original do sessoesPorPacote
+     */
+    @Transactional
+    public void adicionarSessoesExtras(Long pacienteId, Integer quantidadeSessoes) {
+        Paciente paciente = pacienteRepository.findById(pacienteId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        
+        if (!paciente.getAtivo()) {
+            throw new RuntimeException("Não é possível adicionar sessões para paciente inativo");
+        }
+        
+        if (!paciente.temHorarioDefinido()) {
+            throw new RuntimeException("Paciente não possui horário definido");
+        }
+        
+        // Cria as sessões extras diretamente usando o SessaoService
+        sessaoService.criarSessoesAdicionais(paciente, quantidadeSessoes);
     }
 
     /**
@@ -378,5 +396,62 @@ public class PacienteService {
             case SATURDAY -> "Sábado";
             case SUNDAY -> "Domingo";
         };
+    }
+
+    /**
+     * Ajusta o número de sessões do paciente sem afetar as existentes
+     */
+    private void ajustarSessoesParaPaciente(Paciente paciente, Integer sessoesPacoteAnterior) {
+        Integer sessoesPacoteAtual = paciente.getSessoesPorPacote();
+        
+        if (sessoesPacoteAtual == null || sessoesPacoteAnterior == null) {
+            return;
+        }
+        
+        System.out.println("=== DEBUG: Ajustando sessões ===");
+        System.out.println("Paciente ID: " + paciente.getId());
+        System.out.println("Sessões anterior: " + sessoesPacoteAnterior);
+        System.out.println("Sessões atual: " + sessoesPacoteAtual);
+        System.out.println("Horário disponível ID: " + paciente.getHorarioDisponivelId());
+        
+        // Conta quantas sessões ativas (AGENDADA) o paciente tem
+        long sessoesAtivas = sessaoService.contarSessoesAtivas(paciente);
+        long sessoesExistentes = sessaoService.contarSessoesExistentes(paciente);
+        
+        System.out.println("Sessões ativas (AGENDADA): " + sessoesAtivas);
+        System.out.println("Sessões existentes no banco: " + sessoesExistentes);
+        
+        // Se não tem sessões ativas, criar todas as sessões do pacote
+        if (sessoesAtivas == 0) {
+            System.out.println("Paciente não tem sessões ativas - criando " + sessoesPacoteAtual + " sessões");
+            sessaoService.criarSessoesParaPaciente(paciente);
+            return;
+        }
+        
+        if (sessoesPacoteAtual > sessoesPacoteAnterior) {
+            // Aumentou o número de sessões - criar apenas as sessões a mais
+            // Exemplo: tinha 4, agora é 5, criar apenas 1 sessão (5 - 4 = 1)
+            int sessoesParaCriar = sessoesPacoteAtual - sessoesPacoteAnterior;
+            System.out.println("Aumentou sessões - criando " + sessoesParaCriar + " sessões adicionais");
+            if (sessoesParaCriar > 0) {
+                sessaoService.criarSessoesAdicionais(paciente, sessoesParaCriar);
+            }
+        } else if (sessoesPacoteAtual < sessoesPacoteAnterior) {
+            // Diminuiu o número de sessões
+            if (sessoesPacoteAtual < sessoesAtivas) {
+                // Se o novo número é menor que as sessões ativas, apenas atualiza no banco
+                // Não remove sessões ativas - apenas permite que o paciente tenha menos sessões no pacote
+                System.out.println("Número de sessões menor que ativas (" + sessoesAtivas + ") - apenas atualizando no banco");
+            } else {
+                // Se o novo número é maior ou igual às sessões ativas, remove apenas sessões agendadas futuras
+                long sessoesParaRemover = sessoesAtivas - sessoesPacoteAtual;
+                System.out.println("Removendo " + sessoesParaRemover + " sessões agendadas futuras");
+                if (sessoesParaRemover > 0) {
+                    sessaoService.removerSessoesAgendadas(paciente, (int) sessoesParaRemover);
+                }
+            }
+        }
+        
+        System.out.println("=== FIM DEBUG ===");
     }
 }

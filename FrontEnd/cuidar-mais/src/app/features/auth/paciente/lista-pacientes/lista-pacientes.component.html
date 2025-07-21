@@ -225,11 +225,11 @@
                   type="button"
                   class="action-btn edit-btn"
                   (click)="criarSessoesAdicionais(paciente.id)"
-                  *ngIf="paciente.ativo === true"
-                  [attr.aria-label]="'Agendar sessões para ' + paciente.nome"
+                  *ngIf="paciente.ativo === true && pacienteTemHorario(paciente)"
+                  [attr.aria-label]="'Adicionar sessões para ' + paciente.nome"
                 >
                   <i class="fas fa-calendar-plus" aria-hidden="true"></i>
-                  <span class="sr-only">Agendar sessões</span>
+                  <span class="sr-only">Adicionar sessões</span>
                 </button>
 
                 <button

@@ -264,7 +264,7 @@ public class SessaoService {
             Sessao sessao = new Sessao();
             sessao.setPaciente(paciente);
             sessao.setPsicologo(paciente.getPsicologo());
-            sessao.setHorarioDisponivel(horarioDisponivel); // CRITICAL: Set the horario_disponivel_id
+            sessao.setHorarioDisponivelId(horarioDisponivel.getId()); // CRITICAL: Set the horario_disponivel_id
             sessao.setDataSessao(proximaData);
             sessao.setHoraInicio(horarioDisponivel.getHoraInicio());
             sessao.setHoraFim(horarioDisponivel.getHoraFim());
@@ -289,6 +289,73 @@ public class SessaoService {
     }
 
     /**
+     * Cria sessões adicionais para um paciente sem modificar o valor original do sessoesPorPacote
+     */
+    @Transactional
+    public void criarSessoesAdicionais(Paciente paciente, Integer quantidadeSessoes) {
+        if (paciente.getHorarioDisponivelId() == null) {
+            throw new RuntimeException("Paciente não possui horário definido");
+        }
+
+        // Busca o horário disponível vinculado ao paciente
+        Optional<HorarioDisponivel> horarioOpt = horarioDisponivelRepository.findById(paciente.getHorarioDisponivelId());
+        
+        HorarioDisponivel horarioDisponivel;
+        if (horarioOpt.isPresent()) {
+            horarioDisponivel = horarioOpt.get();
+        } else {
+            throw new RuntimeException("Horário disponível não encontrado para o paciente");
+        }
+
+        // Busca sessões existentes para calcular o próximo número
+        List<Sessao> sessoesExistentes = sessaoRepository.findByPacienteAndAtivoTrue(paciente);
+        
+        // Encontra a próxima data disponível após a última sessão
+        LocalDate proximaData = encontrarProximaDataDisponivel(horarioDisponivel);
+        
+        // Se já existem sessões, procura a data após a última sessão
+        if (!sessoesExistentes.isEmpty()) {
+            LocalDate ultimaDataSessao = sessoesExistentes.stream()
+                    .map(Sessao::getDataSessao)
+                    .max(LocalDate::compareTo)
+                    .orElse(LocalDate.now());
+            
+            // Próxima semana após a última sessão
+            proximaData = ultimaDataSessao.plusWeeks(1);
+            
+            // Garante que a data seja no dia correto da semana
+            while (!proximaData.getDayOfWeek().equals(horarioDisponivel.getDiaSemana())) {
+                proximaData = proximaData.plusDays(1);
+            }
+        }
+        
+        List<Sessao> novasSessoes = new ArrayList<>();
+        int numeroSessao = sessoesExistentes.size() + 1;
+        
+        // Cria apenas as sessões extras solicitadas
+        for (int i = 0; i < quantidadeSessoes; i++) {
+            Sessao sessao = new Sessao();
+            sessao.setPaciente(paciente);
+            sessao.setPsicologo(paciente.getPsicologo());
+            sessao.setHorarioDisponivelId(horarioDisponivel.getId());
+            sessao.setDataSessao(proximaData);
+            sessao.setHoraInicio(horarioDisponivel.getHoraInicio());
+            sessao.setHoraFim(horarioDisponivel.getHoraFim());
+            sessao.setNumeroSessao(numeroSessao++);
+            sessao.setStatus(Sessao.StatusSessao.AGENDADA);
+            sessao.setAtivo(true);
+            sessao.setDataCriacao(LocalDateTime.now());
+            
+            novasSessoes.add(sessao);
+            
+            // Próxima semana
+            proximaData = proximaData.plusWeeks(1);
+        }
+        
+        sessaoRepository.saveAll(novasSessoes);
+    }
+
+    /**
      * Conta sessões agendadas de um paciente
      */
     public long contarSessoesAgendadas(Paciente paciente) {
@@ -302,7 +369,7 @@ public class SessaoService {
     @Transactional
     public void cancelarSessoesPorConfiguracaoAgenda(List<HorarioDisponivel> horariosDisponiveis) {
         for (HorarioDisponivel horario : horariosDisponiveis) {
-            List<Sessao> sessoesDoHorario = sessaoRepository.findByHorarioDisponivelAndAtivoTrue(horario);
+            List<Sessao> sessoesDoHorario = sessaoRepository.findByHorarioDisponivelIdAndAtivoTrue(horario.getId());
             
             List<Sessao> sessoesParaDeletar = new ArrayList<>();
             List<Sessao> sessoesParaAtualizar = new ArrayList<>();
@@ -352,5 +419,144 @@ public class SessaoService {
         }
         
         return proximaData;
+    }
+
+    /**
+     * Conta o número total de sessões existentes (agendadas + realizadas) para um paciente
+     */
+    public long contarSessoesExistentes(Paciente paciente) {
+        return sessaoRepository.countByPacienteIdAndAtivoTrue(paciente.getId());
+    }
+
+    /**
+     * Conta apenas sessões ativas (AGENDADA) para um paciente
+     */
+    public long contarSessoesAtivas(Paciente paciente) {
+        return sessaoRepository.countByPacienteIdAndStatusAgendadaAndAtivoTrue(paciente.getId());
+    }
+
+    /**
+     * Cria sessões adicionais para um paciente
+     */
+    @Transactional
+    public void criarSessoesAdicionais(Paciente paciente, int quantidadeSessoes) {
+        if (paciente.getHorarioDisponivelId() == null) {
+            return;
+        }
+
+        Optional<HorarioDisponivel> horarioOpt = horarioDisponivelRepository.findById(paciente.getHorarioDisponivelId());
+        if (horarioOpt.isEmpty()) {
+            return;
+        }
+
+        HorarioDisponivel horarioDisponivel = horarioOpt.get();
+        
+        // Encontra a última sessão agendada para este paciente
+        List<Sessao> sessoesExistentes = sessaoRepository.findByPacienteIdAndAtivoTrueOrderByDataSessao(paciente.getId());
+        
+        LocalDate proximaData;
+        int proximoNumeroSessao;
+        
+        if (sessoesExistentes.isEmpty()) {
+            proximaData = encontrarProximaDataDisponivel(horarioDisponivel);
+            proximoNumeroSessao = 1;
+        } else {
+            // Começa a partir da última sessão agendada + 1 semana
+            Sessao ultimaSessao = sessoesExistentes.get(sessoesExistentes.size() - 1);
+            proximaData = ultimaSessao.getDataSessao().plusWeeks(1);
+            proximoNumeroSessao = ultimaSessao.getNumeroSessao() + 1;
+        }
+
+        // Cria as sessões adicionais
+        for (int i = 0; i < quantidadeSessoes; i++) {
+            Sessao sessao = new Sessao();
+            sessao.setPaciente(paciente);
+            sessao.setPsicologo(paciente.getPsicologo());
+            sessao.setDataSessao(proximaData);
+            sessao.setHoraInicio(horarioDisponivel.getHoraInicio());
+            sessao.setHoraFim(horarioDisponivel.getHoraFim());
+            sessao.setNumeroSessao(proximoNumeroSessao++);
+            sessao.setStatus(Sessao.StatusSessao.AGENDADA);
+            sessao.setAtivo(true);
+            sessao.setHorarioDisponivelId(horarioDisponivel.getId());
+
+            sessaoRepository.save(sessao);
+
+            // Próxima sessão na semana seguinte
+            proximaData = proximaData.plusWeeks(1);
+        }
+    }
+
+    /**
+     * Remove sessões agendadas (não realizadas) para um paciente
+     */
+    @Transactional
+    public void removerSessoesAgendadas(Paciente paciente, int quantidadeParaRemover) {
+        System.out.println("=== DEBUG: Removendo sessões ===");
+        System.out.println("Paciente ID: " + paciente.getId());
+        System.out.println("Quantidade para remover: " + quantidadeParaRemover);
+        
+        List<Sessao> sessoesAgendadas = sessaoRepository.findByPacienteIdAndStatusAndAtivoTrueOrderByDataSessaoDesc(
+            paciente.getId());
+        
+        System.out.println("Sessões AGENDADAS encontradas: " + sessoesAgendadas.size());
+        
+        int removidas = 0;
+        for (Sessao sessao : sessoesAgendadas) {
+            if (removidas >= quantidadeParaRemover) {
+                break;
+            }
+            
+            System.out.println("Analisando sessão ID: " + sessao.getId() + 
+                              ", Data: " + sessao.getDataSessao() + 
+                              ", Status: " + sessao.getStatus());
+            
+            // Remove apenas sessões futuras que ainda não foram realizadas
+            if (sessao.getDataSessao().isAfter(LocalDate.now()) || 
+                (sessao.getDataSessao().equals(LocalDate.now()) && 
+                 LocalTime.now().isBefore(sessao.getHoraInicio()))) {
+                
+                System.out.println("Marcando sessão como inativa: " + sessao.getId());
+                sessao.setAtivo(false);
+                sessaoRepository.save(sessao);
+                removidas++;
+            } else {
+                System.out.println("Sessão não pode ser removida (já passou): " + sessao.getId());
+            }
+        }
+        
+        System.out.println("Total de sessões removidas: " + removidas);
+        System.out.println("=== FIM DEBUG REMOÇÃO ===");
+    }
+
+    /**
+     * Remove fisicamente todas as sessões de um paciente (usado quando paciente é inativado)
+     */
+    @Transactional
+    public void apagarTodasSessoesPaciente(Paciente paciente) {
+        System.out.println("=== DEBUG: Apagando todas as sessões do paciente ===");
+        System.out.println("Paciente ID: " + paciente.getId());
+        
+        // Busca TODAS as sessões do paciente por ID (ativas e inativas)
+        List<Sessao> todasSessoes = sessaoRepository.findAllByPacienteId(paciente.getId());
+        System.out.println("Total de sessões encontradas: " + todasSessoes.size());
+        
+        if (!todasSessoes.isEmpty()) {
+            // Lista as sessões que serão apagadas para debug
+            for (Sessao sessao : todasSessoes) {
+                System.out.println("Apagando sessão ID: " + sessao.getId() + 
+                                  ", Data: " + sessao.getDataSessao() + 
+                                  ", Status: " + sessao.getStatus() + 
+                                  ", Ativo: " + sessao.getAtivo());
+            }
+            
+            // Remove fisicamente todas as sessões do paciente
+            sessaoRepository.deleteAll(todasSessoes);
+            System.out.println("Todas as " + todasSessoes.size() + " sessões foram apagadas do banco de dados");
+        } else {
+            System.out.println("Nenhuma sessão encontrada para apagar");
+        }
+        
+        System.out.println("=== FIM DEBUG APAGAR SESSÕES ===");
     }
 }

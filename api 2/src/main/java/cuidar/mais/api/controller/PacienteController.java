@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pacientes")
@@ -125,6 +126,25 @@ public class PacienteController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    /**
+     * Adiciona sessões extras ao pacote do paciente
+     */
+    @PostMapping("/{id}/adicionar-sessoes")
+    public ResponseEntity<?> adicionarSessoes(@PathVariable Long id, @RequestBody Map<String, Integer> dados) {
+        try {
+            Integer quantidadeSessoes = dados.get("quantidadeSessoes");
+            if (quantidadeSessoes == null || quantidadeSessoes <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("erro", "Quantidade de sessões deve ser maior que zero"));
+            }
+            
+            pacienteService.adicionarSessoesExtras(id, quantidadeSessoes);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }
     }
 }

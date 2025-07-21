@@ -236,18 +236,32 @@ export class ListaPacientesComponent implements OnInit {
     }
   }
 
+  pacienteTemHorario(paciente: Paciente): boolean {
+    // Verifica se o paciente tem horário definido através de qualquer um dos campos
+    return paciente.horarioDisponivel?.id != null || 
+           (paciente.diaSemana != null && paciente.horarioInicio != null);
+  }
+
   criarSessoesAdicionais(pacienteId: number) {
-    if (confirm('Deseja criar sessões adicionais para este paciente?')) {
-      this.http.post(`http://localhost:8080/api/pacientes/${pacienteId}/criar-sessoes-adicionais`, {}).subscribe({
-        next: (response) => {
-          this.sucesso = 'Sessões adicionais criadas com sucesso!';
-          this.carregarPacientes(); // Recarrega a lista de pacientes
-        },
-        error: (err) => {
-          this.erro = 'Erro ao criar sessões adicionais: ' + (err.error?.erro || 'Erro desconhecido');
-        }
-      });
+    // Encontra o paciente para pegar o sessoesPorPacote
+    const paciente = this.pacientes.find(p => p.id === pacienteId);
+    if (!paciente) {
+      this.erro = 'Paciente não encontrado!';
+      return;
     }
+
+    // Cria as sessões automaticamente baseado no sessoesPorPacote do paciente
+    this.http.post(`http://localhost:8080/api/pacientes/${pacienteId}/adicionar-sessoes`, {
+      quantidadeSessoes: paciente.sessoesPorPacote
+    }).subscribe({
+      next: (response) => {
+        this.sucesso = `${paciente.sessoesPorPacote} sessões adicionais criadas com sucesso para ${paciente.nome}!`;
+        this.carregarPacientes(); // Recarrega a lista de pacientes
+      },
+      error: (err) => {
+        this.erro = 'Erro ao criar sessões adicionais: ' + (err.error?.erro || 'Erro desconhecido');
+      }
+    });
   }
 
   obterNomeDiaSemana(entrada: string): string {

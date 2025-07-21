@@ -30,10 +30,8 @@ public class Sessao {
                 foreignKey = @ForeignKey(name = "fk_sessao_psicologo"))
     private Usuario psicologo;
 
-    @ManyToOne
-    @JoinColumn(name = "horario_disponivel_id", nullable = false,
-                foreignKey = @ForeignKey(name = "fk_sessao_horario"))
-    private HorarioDisponivel horarioDisponivel;
+    @Column(name = "horario_disponivel_id")
+    private Long horarioDisponivelId; // ID do horário disponível (sem FK)
 
     @Column(name = "numero_sessao", nullable = false)
     private Integer numeroSessao;
