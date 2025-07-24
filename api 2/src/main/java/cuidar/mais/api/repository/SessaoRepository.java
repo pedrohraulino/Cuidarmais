@@ -20,10 +20,6 @@ public interface SessaoRepository extends JpaRepository<Sessao, Long> {
     // Busca todas as sessões de um paciente (ativas e inativas)
     List<Sessao> findByPaciente(Paciente paciente);
     
-    // Busca todas as sessões de um paciente por ID (ativas e inativas) - alternativa mais confiável
-    @Query("SELECT s FROM Sessao s WHERE s.paciente.id = ?1")
-    List<Sessao> findAllByPacienteId(Long pacienteId);
-    
     List<Sessao> findByPsicologoAndAtivoTrue(Usuario psicologo);
     
     List<Sessao> findByPacienteAndStatusAndAtivoTrue(Paciente paciente, Sessao.StatusSessao status);

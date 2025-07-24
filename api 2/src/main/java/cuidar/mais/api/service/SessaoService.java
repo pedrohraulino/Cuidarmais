@@ -537,8 +537,8 @@ public class SessaoService {
         System.out.println("=== DEBUG: Apagando todas as sessões do paciente ===");
         System.out.println("Paciente ID: " + paciente.getId());
         
-        // Busca TODAS as sessões do paciente por ID (ativas e inativas)
-        List<Sessao> todasSessoes = sessaoRepository.findAllByPacienteId(paciente.getId());
+        // Busca TODAS as sessões do paciente (ativas e inativas)
+        List<Sessao> todasSessoes = sessaoRepository.findByPaciente(paciente);
         System.out.println("Total de sessões encontradas: " + todasSessoes.size());
         
         if (!todasSessoes.isEmpty()) {
@@ -552,7 +552,7 @@ public class SessaoService {
             
             // Remove fisicamente todas as sessões do paciente
             sessaoRepository.deleteAll(todasSessoes);
-            System.out.println("Todas as " + todasSessoes.size() + " sessões foram apagadas do banco de dados");
+            System.out.println("Todas as sessões foram apagadas do banco de dados");
         } else {
             System.out.println("Nenhuma sessão encontrada para apagar");
         }

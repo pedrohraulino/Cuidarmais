@@ -191,7 +191,7 @@ export class ListaPacientesComponent implements OnInit {
     console.log('- Status filtro:', this.statusFiltro);
     console.log('- Pacientes após filtro de status:', pacientesFiltradosPorStatus.length);
     console.log('- Pacientes finais após busca:', this.pacientesFiltrados.length);
-    
+
     // Log para debug dos status dos pacientes
     console.log('Status dos pacientes:', this.pacientes.map(p => ({ nome: p.nome, ativo: p.ativo })));
   }
@@ -238,7 +238,7 @@ export class ListaPacientesComponent implements OnInit {
 
   pacienteTemHorario(paciente: Paciente): boolean {
     // Verifica se o paciente tem horário definido através de qualquer um dos campos
-    return paciente.horarioDisponivel?.id != null || 
+    return paciente.horarioDisponivel?.id != null ||
            (paciente.diaSemana != null && paciente.horarioInicio != null);
   }
 
