@@ -166,4 +166,15 @@ public class SessaoController {
         
         return ResponseEntity.ok(contadores);
     }
+
+    /**
+     * Lista sessões de um psicólogo em um dia específico
+     */
+    @GetMapping("/psicologo/{psicologoId}/data/{data}")
+    public ResponseEntity<List<SessaoDTO>> listarPorPsicologoEData(
+            @PathVariable Long psicologoId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        List<SessaoDTO> sessoes = sessaoService.listarSessoesPorPsicologoEData(psicologoId, data);
+        return ResponseEntity.ok(sessoes);
+    }
 }

@@ -1,0 +1,20 @@
+```html
+<div class="agenda-container">
+  <div class="calendar-section">
+    <app-custom-calendar (dateChange)="onDateChange($event)"></app-custom-calendar>
+  </div>
+  <div class="list-section">
+    <h2>Sessões do dia {{ selectedDate | date:'dd/MM/yyyy' }}</h2>
+    <div *ngFor="let sessao of sessoes" class="sessao-card">
+      <div class="sessao-horario">{{ sessao.horarioInicio }} - {{ sessao.horarioFim }}</div>
+      <div class="sessao-paciente">
+        <img [src]="sessao.pacienteImagem" alt="Foto" class="paciente-img" />
+        <span>{{ sessao.pacienteNome }}</span>
+      </div>
+      <span class="sessao-status" [ngClass]="sessao.status">{{ sessao.status }}</span>
+      <span class="sessao-presenca" *ngIf="sessao.presenca">✔️</span>
+      <span class="sessao-presenca" *ngIf="!sessao.presenca">❌</span>
+    </div>
+  </div>
+</div>
+```

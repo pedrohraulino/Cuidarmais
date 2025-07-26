@@ -1,0 +1,55 @@
+.agenda-container {
+  display: flex;
+  gap: 32px;
+  margin-top: 32px;
+}
+.calendar-section {
+  flex: 1;
+}
+.list-section {
+  flex: 2;
+}
+.sessao-card {
+  background: #f5f5fa;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.sessao-horario {
+  font-weight: bold;
+  width: 80px;
+}
+.sessao-paciente {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.paciente-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.sessao-status {
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+.sessao-status.Confirmado {
+  background: #1ebc7a;
+  color: #fff;
+}
+.sessao-status.Aguardando {
+  background: #ffb300;
+  color: #fff;
+}
+.sessao-status.Cancelado {
+  background: #ff4d4f;
+  color: #fff;
+}
+.sessao-presenca {
+  font-size: 1.5em;
+}

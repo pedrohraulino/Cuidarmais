@@ -1,0 +1,22 @@
+<div class="calendar-container">
+  <div class="calendar-header">
+    <button (click)="prevMonth()">&#60;</button>
+    <span>{{ currentDate | date:'MMMM yyyy' }}</span>
+    <button (click)="nextMonth()">&#62;</button>
+  </div>
+  <div class="calendar-grid">
+    <div class="calendar-weekdays">
+      <span *ngFor="let wd of weekDays">{{ wd }}</span>
+    </div>
+    <div *ngFor="let _ of blanks" class="calendar-day blank"></div>
+    <div 
+      class="calendar-day"
+      *ngFor="let day of days"
+      (click)="selectDay(day)"
+      [class.today]="day === today"
+      [class.selected]="day === selectedDay"
+    >
+      {{ day }}
+    </div>
+  </div>
+</div>

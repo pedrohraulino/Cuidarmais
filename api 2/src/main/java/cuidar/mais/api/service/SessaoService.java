@@ -559,4 +559,11 @@ public class SessaoService {
         
         System.out.println("=== FIM DEBUG APAGAR SESSÕES ===");
     }
+
+    public List<SessaoDTO> listarSessoesPorPsicologoEData(Long psicologoId, LocalDate data) {
+        List<Sessao> sessoes = sessaoRepository.findByPsicologoIdAndDataSessaoAndAtivoTrueOrderByHoraInicio(psicologoId, data);
+        return sessoes.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
 }

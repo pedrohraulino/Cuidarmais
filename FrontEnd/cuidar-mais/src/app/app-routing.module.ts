@@ -5,6 +5,7 @@ import { CadastrarPacienteComponent } from './features/auth/paciente/cadastrar-p
 import { authGuard } from '../auth.guard';
 import { ConfigurarComponent } from './features/auth/agenda/configurar/configurar.component';
 import { ListaPacientesComponent } from './features/auth/paciente/lista-pacientes/lista-pacientes.component';
+import { AgendaListagemComponent } from './features/auth/agenda/agenda-listagem/agenda-listagem.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -31,6 +32,12 @@ const routes: Routes = [
     component: ConfigurarComponent,
     canActivate: [authGuard],
     data: { title: 'Configurações' },
+  },
+  {
+    path: 'agenda',
+    component: AgendaListagemComponent,
+    canActivate: [authGuard],
+    data: { title: 'Agenda' },
   },
 
   { path: '', redirectTo: 'login', pathMatch: 'full' },
