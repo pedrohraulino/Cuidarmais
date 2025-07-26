@@ -1,0 +1,119 @@
+@startuml
+title Modelo de Domínio - Sistema Cuidar+
+
+skinparam classAttributeIconSize 0
+
+' ENUMS
+enum Sexo {
+  MASCULINO
+  FEMININO
+  OUTRO
+}
+
+enum StatusSessao {
+  AGENDADA
+  REALIZADA
+  CANCELADA
+  FALTOU
+}
+
+' CLASSES
+
+class Usuario {
+  +Long id
+  +String nome
+  +String email
+  +String senha
+  +Boolean ativo
+  +String crp
+  +String imagemBase64
+  +String imagemTipo
+  +LocalDateTime dataCriacao
+  +List<Perfil> perfis
+  +getImagemDataUrl(): String
+}
+
+class Perfil {
+  +Long id
+  +String nome
+  +getAuthority(): String
+}
+
+class Paciente {
+  +Long id
+  +String nome
+  +String sobrenome
+  +Sexo sexo
+  +LocalDate dataNascimento
+  +String email
+  +String telefone
+  +String imagemBase64
+  +String imagemTipo
+  +Long horarioDisponivelId
+  +Integer sessoesPorPacote
+  +LocalDate dataCriacao
+  +Boolean ativo
+  +getImagemDataUrl(): String
+  +getNomeCompleto(): String
+  +temHorarioDefinido(): boolean
+}
+
+class Sessao {
+  +Long id
+  +Integer numeroSessao
+  +LocalDate dataSessao
+  +LocalTime horaInicio
+  +LocalTime horaFim
+  +StatusSessao status
+  +String observacoes
+  +Boolean ativo
+  +LocalDateTime dataCriacao
+  +LocalDateTime dataAtualizacao
+  +isPodeRemarcar(): boolean
+  +isPodeCancelar(): boolean
+}
+
+class HorarioDisponivel {
+  +Long id
+  +DayOfWeek diaSemana
+  +LocalTime horaInicio
+  +LocalTime horaFim
+  +Boolean ativo
+  +Long pacienteId
+  +isDisponivel(): boolean
+  +vincularPaciente(Long): void
+  +desvincularPaciente(): void
+}
+
+class ConfiguracaoAgenda {
+  +Long id
+  +DayOfWeek diaSemana
+  +LocalTime horarioInicio
+  +Integer intervaloMinutos
+  +LocalTime horarioFim
+  +LocalTime inicioPausa
+  +LocalTime voltaPausa
+  +Boolean ativo
+  +LocalDateTime dataCriacao
+  +LocalDateTime dataAtualizacao
+  +preUpdate(): void
+}
+
+' RELACIONAMENTOS
+
+Usuario "1" -- "many" Paciente : psicologo
+Usuario "1" -- "many" Sessao : psicologo
+Usuario "1" -- "many" HorarioDisponivel : psicologo
+Usuario "1" -- "many" ConfiguracaoAgenda : psicologo
+Usuario "many" -- "many" Perfil
+
+Paciente "1" -- "many" Sessao
+Paciente "1" -- "1" Usuario : psicologo
+
+Sessao "1" -- "1" Paciente
+Sessao "1" -- "1" Usuario : psicologo
+
+HorarioDisponivel "1" -- "1" ConfiguracaoAgenda
+HorarioDisponivel "1" -- "1" Usuario : psicologo
+
+@enduml
