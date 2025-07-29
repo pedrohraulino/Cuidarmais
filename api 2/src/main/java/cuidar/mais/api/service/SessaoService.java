@@ -578,4 +578,8 @@ public class SessaoService {
         sessao.setStatus(Sessao.StatusSessao.CANCELADA);
         sessaoRepository.save(sessao);
     }
+
+    public int contarSessoesPorPaciente(Long pacienteId) {
+        return (int) sessaoRepository.countByPacienteId(pacienteId);
+    }
 }

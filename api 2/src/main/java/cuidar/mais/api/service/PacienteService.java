@@ -109,8 +109,12 @@ public class PacienteService {
         // Salva dados antigos
         Long horarioAnterior = paciente.getHorarioDisponivelId();
         Integer sessoesPorPacoteAnterior = paciente.getSessoesPorPacote();
+        int sessoesAtuais = sessaoService.contarSessoesPorPaciente(paciente.getId());
+        int novoTotalSessoes = dto.getSessoesPorPacote();
+        int maiorTotal = Math.max(sessoesAtuais, novoTotalSessoes);
 
         preencherDadosPaciente(paciente, dto);
+        paciente.setSessoesPorPacote(maiorTotal); // Sempre manter o maior
         paciente = pacienteRepository.save(paciente);
 
         // Verifica se o horário mudou
@@ -129,10 +133,12 @@ public class PacienteService {
             if (paciente.getHorarioDisponivelId() != null) {
                 vincularHorarioECriarSessoes(paciente);
             }
-        } else if (paciente.temHorarioDefinido()) {
-            // Sempre ajusta sessões quando o paciente tem horário definido
-            // Isso garante que sessões sejam criadas mesmo quando apenas outros campos foram editados
-            ajustarSessoesParaPaciente(paciente, sessoesPorPacoteAnterior);
+        } else if (novoTotalSessoes > sessoesAtuais) {
+            // Se só aumentou a quantidade, criar sessões adicionais
+            int faltamCriar = novoTotalSessoes - sessoesAtuais;
+            if (faltamCriar > 0) {
+                sessaoService.criarSessoesAdicionais(paciente, faltamCriar);
+            }
         }
 
         return converterParaDTO(paciente);

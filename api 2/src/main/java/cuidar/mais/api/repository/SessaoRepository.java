@@ -69,4 +69,7 @@ public interface SessaoRepository extends JpaRepository<Sessao, Long> {
 
     @Query("SELECT s FROM Sessao s WHERE s.paciente.id = ?1 AND s.status = cuidar.mais.api.models.Sessao$StatusSessao.AGENDADA AND s.ativo = true ORDER BY s.dataSessao DESC, s.horaInicio DESC")
     List<Sessao> findByPacienteIdAndStatusAndAtivoTrueOrderByDataSessaoDesc(Long pacienteId);
+
+    @Query("SELECT COUNT(s) FROM Sessao s WHERE s.paciente.id = ?1")
+    long countByPacienteId(Long pacienteId);
 }
