@@ -103,15 +103,10 @@ class ConfiguracaoAgenda {
 
 Usuario "1" -- "many" Paciente : psicologo
 Usuario "1" -- "many" Sessao : psicologo
-Usuario "1" -- "many" HorarioDisponivel : psicologo
 Usuario "1" -- "many" ConfiguracaoAgenda : psicologo
 Usuario "many" -- "many" Perfil
 
 Paciente "1" -- "many" Sessao
-Paciente "1" -- "1" Usuario : psicologo
-
-Sessao "1" -- "1" Paciente
-Sessao "1" -- "1" Usuario : psicologo
 
 HorarioDisponivel "1" -- "1" ConfiguracaoAgenda
 HorarioDisponivel "1" -- "1" Usuario : psicologo

@@ -1,20 +1,74 @@
-```html
-<div class="agenda-container">
-  <div class="calendar-section">
-    <app-custom-calendar (dateChange)="onDateChange($event)"></app-custom-calendar>
-  </div>
-  <div class="list-section">
-    <h2>Sessões do dia {{ selectedDate | date:'dd/MM/yyyy' }}</h2>
-    <div *ngFor="let sessao of sessoes" class="sessao-card">
-      <div class="sessao-horario">{{ sessao.horarioInicio }} - {{ sessao.horarioFim }}</div>
-      <div class="sessao-paciente">
-        <img [src]="sessao.pacienteImagem" alt="Foto" class="paciente-img" />
-        <span>{{ sessao.pacienteNome }}</span>
+<main class="main-container">
+  <app-cabecalho></app-cabecalho>
+  <div class="container-page">
+    <section class="agenda-table-container">
+      <header class="agenda-table-header">
+        <div>
+          <h1 class="table-title">Agendamentos</h1>
+          <!-- Adicione filtros ou navegação aqui se necessário -->
+        </div>
+      </header>
+      <div class="agenda-table" role="table" aria-label="Lista de agendamentos">
+        <header class="table-header" role="row">
+          <div class="col-horario" role="columnheader">Horário</div>
+          <div class="col-name" role="columnheader">Nome</div>
+          <div class="col-status" role="columnheader">Status</div>
+          <div class="col-presenca" role="columnheader">Presença</div>
+        </header>
+        <div class="table-body" role="rowgroup">
+          <article
+            class="agenda-row"
+            *ngFor="let sessao of sessoes"
+            role="row"
+            [attr.aria-label]="'Paciente: ' + sessao.nomePaciente + (sessao.pacienteSobrenome ? ' ' + sessao.pacienteSobrenome : '')"
+          >
+            <div class="col-horario" role="cell">
+              <span class="agenda-horario">{{ sessao.horaInicio }}<br>{{ sessao.horaFim }}</span>
+            </div>
+            <div class="col-name" role="cell">
+              <div class="agenda-info">
+                <figure class="agenda-avatar">
+                  <img
+                    *ngIf="sessao.pacienteImagem"
+                    [src]="getImagemSrc(sessao.pacienteImagem)"
+                    [alt]="'Foto de ' + sessao.nomePaciente + (sessao.pacienteSobrenome ? ' ' + sessao.pacienteSobrenome : '')"
+                  />
+                  <div *ngIf="!sessao.pacienteImagem" class="avatar-placeholder">
+                    <i class="fas fa-user"></i>
+                  </div>
+                </figure>
+                <div class="agenda-details">
+                  <span class="agenda-name">{{ sessao.nomePaciente }} {{ sessao.pacienteSobrenome }}</span>
+                </div>
+                <a *ngIf="sessao.pacienteTelefone" class="btn-whatsapp btn-whatsapp-inline" [href]="getWhatsappLink(sessao.pacienteTelefone)" target="_blank" title="WhatsApp">
+                  <i class="fab fa-whatsapp"></i>
+                </a>
+              </div>
+            </div>
+            <div class="col-status" role="cell">
+              <span class="status-badge" [ngClass]="sessao.status">{{ sessao.status }}</span>
+            </div>
+            <div class="col-presenca" role="cell">
+              <div class="presenca-buttons">
+                <ng-container *ngIf="sessao.status === 'AGENDADA'">
+                  <button class="btn-confirmar btn-presenca" (click)="confirmarSessao(sessao)" title="Confirmar">
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button class="btn-faltou btn-presenca" (click)="marcarFaltou(sessao)" title="Faltou">
+                    <i class="fas fa-user-slash"></i>
+                  </button>
+                  <button class="btn-cancelar btn-presenca" (click)="cancelarSessao(sessao)" title="Cancelar">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </ng-container>
+              </div>
+            </div>
+          </article>
+        </div>
       </div>
-      <span class="sessao-status" [ngClass]="sessao.status">{{ sessao.status }}</span>
-      <span class="sessao-presenca" *ngIf="sessao.presenca">✔️</span>
-      <span class="sessao-presenca" *ngIf="!sessao.presenca">❌</span>
+    </section>
+    <div class="calendar-section">
+      <app-custom-calendar (dateChange)="onDateChange($event)"></app-custom-calendar>
     </div>
   </div>
-</div>
-```
+</main>

@@ -119,25 +119,6 @@ public class SessaoService {
         return convertToDTO(sessaoSalva);
     }
 
-    @Transactional
-    public void cancelarSessao(Long sessaoId) {
-        Optional<Sessao> sessaoOpt = sessaoRepository.findById(sessaoId);
-        if (sessaoOpt.isEmpty()) {
-            throw new RuntimeException("Sessão não encontrada");
-        }
-
-        Sessao sessao = sessaoOpt.get();
-        
-        // Verificar se já foi realizada
-        if (sessao.getStatus() == Sessao.StatusSessao.REALIZADA) {
-            throw new RuntimeException("Não é possível cancelar uma sessão já realizada");
-        }
-
-        sessao.setStatus(Sessao.StatusSessao.CANCELADA);
-        sessao.setAtivo(false);
-        sessaoRepository.save(sessao);
-    }
-
     public SessaoDTO buscarSessaoPorId(Long sessaoId) {
         Optional<Sessao> sessao = sessaoRepository.findById(sessaoId);
         if (sessao.isEmpty()) {
@@ -184,7 +165,11 @@ public class SessaoService {
         dto.setAtivo(sessao.getAtivo());
         dto.setDataCriacao(sessao.getDataCriacao());
         dto.setDataAtualizacao(sessao.getDataAtualizacao());
-        
+        // Adiciona dados do paciente
+        dto.setPacienteEmail(sessao.getPaciente().getEmail());
+        dto.setPacienteTelefone(sessao.getPaciente().getTelefone());
+        dto.setPacienteSobrenome(sessao.getPaciente().getSobrenome());
+        dto.setPacienteImagem(sessao.getPaciente().getImagemBase64());
         return dto;
     }
 
@@ -565,5 +550,32 @@ public class SessaoService {
         return sessoes.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    // Confirma uma sessão
+    @Transactional
+    public void confirmarSessao(Long id) {
+        Sessao sessao = sessaoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Sessão não encontrada"));
+        sessao.setStatus(Sessao.StatusSessao.REALIZADA);
+        sessaoRepository.save(sessao);
+    }
+
+    // Marca falta em uma sessão
+    @Transactional
+    public void marcarFaltou(Long id) {
+        Sessao sessao = sessaoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Sessão não encontrada"));
+        sessao.setStatus(Sessao.StatusSessao.FALTOU);
+        sessaoRepository.save(sessao);
+    }
+
+    // Cancela uma sessão
+    @Transactional
+    public void cancelarSessao(Long id) {
+        Sessao sessao = sessaoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Sessão não encontrada"));
+        sessao.setStatus(Sessao.StatusSessao.CANCELADA);
+        sessaoRepository.save(sessao);
     }
 }

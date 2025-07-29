@@ -1,10 +1,80 @@
+// Variáveis SCSS padronizadas
+$border-radius-sm: 6px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+$border-radius-round: 50%;
+
+$btn-font-size: 14px;
+$btn-font-weight: 500;
+$btn-padding: 12px 20px;
+$btn-gap: 8px;
+$btn-icon-size: 14px;
+$btn-transition: all 0.3s ease;
+$btn-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+$btn-shadow-hover: 0 4px 12px rgba(139, 92, 246, 0.4);
+
+@mixin btn-base {
+  border: none;
+  border-radius: $border-radius-md;
+  padding: $btn-padding;
+  font-size: $btn-font-size;
+  font-weight: $btn-font-weight;
+  display: flex;
+  align-items: center;
+  gap: $btn-gap;
+  cursor: pointer;
+  transition: $btn-transition;
+  text-decoration: none;
+
+  i {
+    font-size: $btn-icon-size;
+  }
+}
+
+@mixin btn-primary {
+  @include btn-base;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  box-shadow: $btn-shadow;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $btn-shadow-hover;
+  }
+}
+
+@mixin btn-secondary {
+  @include btn-base;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+
+  &:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+  }
+}
+
+@mixin btn-small {
+  @include btn-base;
+  padding: 8px 12px;
+  font-size: 12px;
+
+  i {
+    font-size: 12px;
+  }
+}
+
 .agenda-container {
   display: flex;
   gap: 32px;
   margin-top: 32px;
 }
 .calendar-section {
-  flex: 1;
+  flex: none;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 .list-section {
   flex: 2;
@@ -52,4 +122,476 @@
 }
 .sessao-presenca {
   font-size: 1.5em;
+}
+.paciente-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f0eef9;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.08);
+  transition: background-color 0.2s;
+  &:hover {
+    background: #e5e0ff;
+  }
+}
+
+.paciente-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.paciente-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  outline: 4px solid #6554c0;
+}
+
+.paciente-dados {
+  display: flex;
+  flex-direction: column;
+}
+
+.paciente-nome {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.paciente-horario {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.paciente-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  &.AGENDADA {
+    background: #fef9c3;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+  &.REALIZADA {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+  &.CANCELADA {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+  }
+  &.FALTOU {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+  }
+}
+
+.paciente-acoes {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-confirmar {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+  transition: all 0.2s;
+  &:hover {
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+    transform: translateY(-2px);
+  }
+}
+
+.btn-faltou {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover {
+    background: #e5e7eb;
+    transform: translateY(-1px);
+  }
+}
+
+.btn-cancelar {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover {
+    background: #fee2e2;
+    transform: translateY(-1px);
+  }
+}
+.btn-whatsapp,
+.btn-whatsapp-inline {
+  height: 24px !important;
+  width: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  max-width: 24px !important;
+  max-height: 24px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 14px !important;
+  background: #166534 !important;
+  color: #dcfce7 !important;
+  border: 1px solid #bbf7d0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(22, 101, 52, 0.15) !important;
+  transition: background 0.2s, transform 0.2s !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  &:hover {
+    background: #15803d !important;
+    transform: translateY(-2px) scale(1.08);
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.25) !important;
+  }
+}
+
+.agenda-table-container {
+  width: 100%;
+  max-width: 100vw;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+.agenda-table,
+.table-header,
+.table-body,
+.agenda-row {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.agenda-table-header {
+  padding: 24px 0;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+
+  div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+.table-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.agenda-table {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.table-header {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 100px 2fr 1fr 1.5fr;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  justify-items: start;
+}
+
+.table-body {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+
+  .agenda-row {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 100px 2fr 1fr 1.5fr;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s ease;
+    background-color: #f0eef9;
+    border-radius: $border-radius-lg;
+    justify-items: start;
+
+    &:hover {
+      background-color: #e5e0ff;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.col-horario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.col-name {
+  display: flex;
+
+  .agenda-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .agenda-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: $border-radius-round;
+    overflow: hidden;
+    flex-shrink: 0;
+    margin: 0;
+    outline: 4px solid #6554C0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: $border-radius-round;
+    border: 2px solid #6554C0;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .agenda-details {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .agenda-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.col-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: $border-radius-xl;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    white-space: nowrap;
+
+    &.Realizada {
+      background-color: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+    &.Agendada {
+      background-color: #fef9c3;
+      color: #b45309;
+      border: 1px solid #fde68a;
+    }
+    &.Cancelada {
+      background-color: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+    &.Faltou {
+      background-color: #f3f4f6;
+      color: #6b7280;
+      border: 1px solid #d1d5db;
+    }
+  }
+}
+
+.col-contact {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+
+  .btn-whatsapp {
+    @include btn-primary;
+    background: #166534 !important;
+    color: #dcfce7 !important;
+    border: 1px solid #bbf7d0 !important;
+    border-radius: $border-radius-md !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 8px rgba(22, 101, 52, 0.15) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.2s, transform 0.2s !important;
+    text-decoration: none !important;
+    i {
+      color: #dcfce7 !important;
+      font-size: 18px !important;
+    }
+  }
+}
+
+.main-container {
+  min-height: 100vh;
+  max-height: 100vh; /* Limita a altura máxima */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Previne overflow no container principal */
+}
+
+.container-page {
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  min-height: 0; /* Força o flexbox a calcular corretamente */
+  width: 100%;
+  gap: 32px;
+  padding: 0 48px 48px 48px;
+}
+
+.col-presenca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  /* Garante alinhamento igual aos outros elementos */
+}
+
+.presenca-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.btn-presenca {
+  height: 32px !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px !important;
+}
+
+.btn-presenca i {
+  font-size: 16px !important;
 }

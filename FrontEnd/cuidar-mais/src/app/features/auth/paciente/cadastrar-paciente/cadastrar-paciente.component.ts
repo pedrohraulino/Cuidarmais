@@ -232,7 +232,7 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
     if (!this.psicologoId || !this.diaSemana) return;
 
     console.log('Carregando horários para o dia:', this.diaSemana);
-    
+
     // Limpa o horarioId atual
     this.horarioId = '';
 
@@ -241,7 +241,7 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
       next: (horarios) => {
         // Filtra apenas os horários do dia selecionado
         const horariosDoDia = horarios.filter(h => h.diaSemana === this.diaSemana);
-        
+
         console.log('Horários livres carregados:', horariosDoDia);
 
         this.horarios = horariosDoDia.map(h => ({
@@ -328,12 +328,18 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
         this.telefone = paciente.telefone;
         this.imagemBase64 = paciente.imagemBase64 || '';
         this.imagemTipo = paciente.imagemTipo || '';
+        // Exibe preview se houver imagem
+        if (paciente.imagemBase64) {
+          this.imagemPreview = `data:${paciente.imagemTipo || 'image/png'};base64,${paciente.imagemBase64}`;
+        } else {
+          this.imagemPreview = null;
+        }
         this.sessoesPorPacote = paciente.sessoesPorPacote;
 
         // Carrega dados de horário se existirem
         if (paciente.diaSemana) {
           this.diaSemana = paciente.diaSemana;
-          
+
           // Carrega horários para o dia e seleciona o horário atual
           this.carregarHorariosParaEdicao(paciente);
         }
@@ -349,8 +355,8 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
     this.http.get<any[]>(`http://localhost:8080/api/horarios-disponiveis/psicologo/${this.psicologoId}/ocupados`).subscribe({
       next: (horariosOcupados) => {
         // Busca o horário do paciente atual
-        const horarioDoPaciente = horariosOcupados.find(h => 
-          h.pacienteId === paciente.id && 
+        const horarioDoPaciente = horariosOcupados.find(h =>
+          h.pacienteId === paciente.id &&
           h.diaSemana === paciente.diaSemana
         );
 
@@ -359,7 +365,7 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
           next: (horariosLivres) => {
             // Filtra horários do dia selecionado
             const horariosLivresDoDia = horariosLivres.filter(h => h.diaSemana === paciente.diaSemana);
-            
+
             // Monta lista de horários incluindo o atual e os livres
             this.horarios = horariosLivresDoDia.map(h => ({
               id: h.id,
@@ -375,7 +381,7 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
                   horario: `${this.formatarHora(horarioDoPaciente.horaInicio)} - ${this.formatarHora(horarioDoPaciente.horaFim)}`
                 });
               }
-              
+
               // Seleciona o horário atual
               this.horarioId = horarioDoPaciente.id.toString();
             }
@@ -480,16 +486,21 @@ export class CadastrarPacienteComponent implements OnInit, AfterViewChecked {
 
   // Método para lidar com o upload de imagem
   onImagemSelecionada(event: any) {
-    const file = event.target.files[0];
+    const file = event.target.files && event.target.files[0];
+    this.imagemSelecionada = file;
     if (file) {
-      this.imagemTipo = file.type;
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        const base64 = e.target.result;
-        // Remove o prefixo "data:image/jpeg;base64," para armazenar apenas os dados
-        this.imagemBase64 = base64.split(',')[1];
+        this.imagemPreview = e.target.result;
+        this.imagemBase64 = e.target.result.split(',')[1];
+        this.imagemTipo = file.type;
       };
       reader.readAsDataURL(file);
+    } else {
+      this.imagemPreview = null;
+      this.imagemBase64 = '';
+      this.imagemTipo = '';
+      this.imagemSelecionada = null;
     }
   }
 }

@@ -33,6 +33,12 @@ public class SessaoDTO {
     private String horarioFormatado;
     private String statusFormatado;
 
+    // Novos campos adicionados
+    private String pacienteEmail;
+    private String pacienteTelefone;
+    private String pacienteSobrenome;
+    private String pacienteImagem;
+
     // Métodos auxiliares
     public String getHorarioFormatado() {
         if (horaInicio != null && horaFim != null) {

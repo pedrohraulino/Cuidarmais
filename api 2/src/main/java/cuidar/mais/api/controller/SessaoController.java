@@ -119,20 +119,30 @@ public class SessaoController {
     }
 
     /**
+     * Confirma uma sessão
+     */
+    @PutMapping("/{id}/confirmar")
+    public ResponseEntity<Void> confirmarSessao(@PathVariable Long id) {
+        sessaoService.confirmarSessao(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Marca falta em uma sessão
+     */
+    @PutMapping("/{id}/faltou")
+    public ResponseEntity<Void> marcarFaltou(@PathVariable Long id) {
+        sessaoService.marcarFaltou(id);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Cancela uma sessão
      */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> cancelar(@PathVariable Long id) {
-        try {
-            sessaoService.cancelarSessao(id);
-            Map<String, String> resposta = new HashMap<>();
-            resposta.put("mensagem", "Sessão cancelada com sucesso");
-            return ResponseEntity.ok(resposta);
-        } catch (RuntimeException e) {
-            Map<String, String> erro = new HashMap<>();
-            erro.put("erro", e.getMessage());
-            return ResponseEntity.badRequest().body(erro);
-        }
+    @PutMapping("/{id}/cancelar")
+    public ResponseEntity<Void> cancelarSessao(@PathVariable Long id) {
+        sessaoService.cancelarSessao(id);
+        return ResponseEntity.ok().build();
     }
 
     /**
